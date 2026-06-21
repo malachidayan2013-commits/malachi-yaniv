@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: yaniv-game
+    env: node
+    plan: free
+    buildCommand: npm run install:all && npm run build
+    startCommand: npm start
