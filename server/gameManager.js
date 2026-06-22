@@ -194,6 +194,7 @@ function publicRoomState(room, viewerId) {
     drewThisTurn: room.turnState.drew,
     discardedThisTurn: room.turnState.discarded,
     myHandValue: viewer ? handValue(viewer.hand) : null,
+    isViewerEliminated: Boolean(viewer && !viewer.active),
     pasteWindow: activePasteWindow
       ? {
           expiresAt: activePasteWindow.expiresAt,
@@ -221,7 +222,6 @@ function publicRoomState(room, viewerId) {
     paused: Boolean(room.paused)
   };
 }
-
 
 function clearTurnTimer(room) {
   if (room?.turnTimer) {
@@ -268,8 +268,15 @@ function activePlayers(room) {
 
 function nextRoundRequiredPlayerIds(room) {
   if (!room || room.status !== 'roundEnded') return [];
+
   return room.players
-    .filter((player) => player.active && !player.isBot && player.connected)
+    .filter((player) => {
+      if (player.isBot || !player.connected) return false;
+
+      if (!room.settings.botGame) return player.active;
+
+      return true;
+    })
     .map((player) => player.id);
 }
 
@@ -911,7 +918,7 @@ function approveNextRound(io, socket) {
 
   const requiredIds = nextRoundRequiredPlayerIds(room);
   if (!requiredIds.includes(socket.id)) {
-    return { ok: false, error: 'רק שחקן פעיל יכול לאשר את הסבב הבא' };
+    return { ok: false, error: room.settings.botGame ? 'רק שחקן אנושי שנשאר לצפות יכול לאשר את הסבב הבא' : 'רק שחקן פעיל יכול לאשר את הסבב הבא' };
   }
 
   if (!room.nextRoundApprovals) room.nextRoundApprovals = new Set();
@@ -984,7 +991,6 @@ export function registerGameSockets(io) {
     socket.on('discardAndDraw', (payload) => {
       discardAndDraw(io, socket, payload?.cardIds || [], payload?.source || 'deck');
     });
-
 
     socket.on('pasteCard', (payload) => {
       pasteCard(io, socket, payload?.cardId);
