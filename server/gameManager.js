@@ -736,7 +736,7 @@ function completeDiscardAndDrawNow(io, room, player, discardResult, source) {
   const drawnCard = takeCardAfterDiscard(room, player, source, discardResult.availableDiscardCard);
   const discardedRanks = new Set(discardResult.discardOrder.map((card) => card.rank));
 
-  if (drawnCard && discardedRanks.has(drawnCard.rank)) {
+  if (source === 'deck' && drawnCard && discardedRanks.has(drawnCard.rank)) {
     openPasteWindow(io, room, player, discardResult, drawnCard);
     return;
   }

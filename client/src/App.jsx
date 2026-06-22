@@ -548,7 +548,7 @@ function GameScreen({ room, mySocketId, onStart, onDraw, onDiscardAndDraw, onPas
         <div className="center-piles">
           <div className={`pile-block ${canPlayToPile ? 'clickable-pile' : ''}`}>
             <Card hidden onClick={() => playToPile('deck')} />
-            <span>קופה: {room.deckCount}</span>
+            <span>קופה</span>
           </div>
           <div className={`pile-block ${canPlayToPile && room.topDiscard ? 'clickable-pile' : ''}`}>
             <Card card={room.topDiscard} onClick={() => playToPile('discard')} />
