@@ -370,6 +370,20 @@ function App() {
 function GameScreen({ room, mySocketId, onStart, onDraw, onDiscardAndDraw, onPaste, onYaniv, onTogglePause, onLeaveRoom, onCopyInvite, onApproveNextRound, error }) {
   const [selectedCardIds, setSelectedCardIds] = useState([]);
   const [now, setNow] = useState(Date.now());
+  const [cardAnimations, setCardAnimations] = useState([]);
+
+  function addCardAnimation(type, options = {}) {
+    const animation = {
+      id: `${Date.now()}-${Math.random()}`,
+      type,
+      ...options
+    };
+
+    setCardAnimations((current) => [...current, animation]);
+    window.setTimeout(() => {
+      setCardAnimations((current) => current.filter((item) => item.id !== animation.id));
+    }, 900);
+  }
 
   useEffect(() => {
     setSelectedCardIds([]);
@@ -437,6 +451,25 @@ function GameScreen({ room, mySocketId, onStart, onDraw, onDiscardAndDraw, onPas
 
   function playToPile(source) {
     if (!canPlayToPile) return;
+
+    selectedCards.forEach((card, index) => {
+      const middleIndex = (selectedCards.length - 1) / 2;
+      addCardAnimation('discard-to-pile', {
+        card,
+        index,
+        total: selectedCards.length,
+        offset: `${(index - middleIndex) * 22}px`,
+        rotate: `${(index - middleIndex) * 5}deg`
+      });
+    });
+
+    window.setTimeout(() => {
+      addCardAnimation(source === 'deck' ? 'draw-from-deck' : 'draw-from-discard', {
+        card: source === 'discard' ? room.topDiscard : null,
+        hidden: source === 'deck'
+      });
+    }, 170);
+
     onDiscardAndDraw(selectedCardIds, source);
     setSelectedCardIds([]);
   }
@@ -541,6 +574,22 @@ function GameScreen({ room, mySocketId, onStart, onDraw, onDiscardAndDraw, onPas
 
       {room.status !== 'lobby' && (
       <section className="game-table">
+        <div className="table-animation-layer" aria-hidden="true">
+          {cardAnimations.map((animation) => (
+            <div
+              key={animation.id}
+              className={`animated-card-shell ${animation.type}`}
+              style={{
+                '--card-offset': animation.offset || '0px',
+                '--card-rotate': animation.rotate || '0deg',
+                animationDelay: `${(animation.index || 0) * 45}ms`
+              }}
+            >
+              <Card card={animation.card} hidden={animation.hidden} disabled />
+            </div>
+          ))}
+        </div>
+
         <PlayerSeat player={topPlayer} position="top-seat" isCurrentTurn={room.currentTurn === topPlayer?.id} />
         <PlayerSeat player={rightPlayer} position="right-seat" isCurrentTurn={room.currentTurn === rightPlayer?.id} />
         <PlayerSeat player={leftPlayer} position="left-seat" isCurrentTurn={room.currentTurn === leftPlayer?.id} />
