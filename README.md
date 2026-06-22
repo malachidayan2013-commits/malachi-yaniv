@@ -1,25 +1,40 @@
 # מלאכי - יניב
 
-גרסה מוכנה להעלאה ל-GitHub ול-Render.
+גרסה 12.
+
+## מה עודכן בגרסה הזו
+
+- תפריט ראשי חדש עם שני כפתורים בלבד:
+  - שחק נגד בוט
+  - שחק נגד חבר
+- לחיצה על "שחק נגד בוט" פותחת את מסך הגדרות הבוטים ישירות, בלי צורך לסמן וי.
+- לחיצה על "שחק נגד חבר" פותחת מסך עם שתי אפשרויות:
+  - צור משחק
+  - הצטרף למשחק
+- במסך יצירת משחק נגד חבר אין יותר בחירה של "משחק נגד בוטים".
+- נשמרו הטקסטים:
+  - "הכנס כאן את שמך"
+  - "הכנס קוד משחק"
+- האייקון של האתר כלול בתיקייה `client/public`.
 
 ## הרצה מקומית
 
-```cmd
-npm.cmd run install:all
+```bash
+npm run install:all
 ```
 
-חלון ראשון:
+חלון שרת:
 
-```cmd
+```bash
 cd server
-npm.cmd run dev
+npm run dev
 ```
 
-חלון שני:
+חלון אתר:
 
-```cmd
+```bash
 cd client
-npm.cmd run dev
+npm run dev
 ```
 
 פתיחה בדפדפן:
@@ -28,17 +43,14 @@ npm.cmd run dev
 http://localhost:5173
 ```
 
-## העלאה ל-Render
+## העלאה ל-GitHub + Render
 
-הפרויקט כולל `render.yaml` בשורש התיקייה.
-Render יריץ:
+אחרי החלפת הקבצים אצלך בתיקיית הפרויקט:
 
-```cmd
-npm run install:all && npm run build
+```bash
+git add .
+git commit -m "Update game mode menu"
+git push
 ```
 
-ואז:
-
-```cmd
-npm start
-```
+Render אמור לפרוס מחדש אוטומטית.

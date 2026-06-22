@@ -52,6 +52,7 @@ function App() {
   const [screen, setScreen] = useState(name ? (pathJoinCode ? 'join' : 'menu') : 'login');
   const [room, setRoom] = useState(null);
   const [joinCode, setJoinCode] = useState(pathJoinCode);
+  const [joinBackScreen, setJoinBackScreen] = useState('menu');
   const [error, setError] = useState('');
   const [createSettings, setCreateSettings] = useState({
     yanivThreshold: 7,
@@ -208,16 +209,66 @@ function App() {
     );
   }
 
+  function openBotGameSettings() {
+    setCreateSettings((current) => ({
+      ...current,
+      botGame: true,
+      totalPlayers: current.totalPlayers || 4
+    }));
+    setScreen('create');
+    setError('');
+  }
+
+  function openJoinFromFriendMenu() {
+    setJoinBackScreen('friendMenu');
+    setScreen('join');
+    setError('');
+  }
+
+  function openFriendGameSettings() {
+    setCreateSettings((current) => ({
+      ...current,
+      botGame: false,
+      totalPlayers: 4
+    }));
+    setScreen('create');
+    setError('');
+  }
+
   if (screen === 'menu') {
     return (
       <main className="app-shell center-screen">
-        <section className="panel menu-panel">
+        <section className="panel menu-panel game-mode-panel">
           <div className="top-name">שלום, {name}</div>
-          <h1>יניב</h1>
-          <button className="primary-button" onClick={quickPlay}>היכנס למשחק</button>
-          <button className="secondary-button" onClick={() => setScreen('join')}>הצטרף למשחק קיים</button>
-          <button className="secondary-button" onClick={() => setScreen('create')}>צור משחק</button>
+          <h1>בחר מצב משחק</h1>
+          <div className="mode-choice-grid">
+            <button className="mode-card-button" onClick={openBotGameSettings}>
+              <span className="mode-icon">🤖</span>
+              <strong>שחק נגד בוט</strong>
+              <span>משחק מהיר עם בוטים</span>
+            </button>
+            <button className="mode-card-button" onClick={() => setScreen('friendMenu')}>
+              <span className="mode-icon">👥</span>
+              <strong>שחק נגד חבר</strong>
+              <span>צור חדר או הצטרף לקוד</span>
+            </button>
+          </div>
           <button className="link-button" onClick={() => setScreen('login')}>שנה שם</button>
+          {error && <p className="error-text">{error}</p>}
+        </section>
+      </main>
+    );
+  }
+
+  if (screen === 'friendMenu') {
+    return (
+      <main className="app-shell center-screen">
+        <section className="panel menu-panel friend-menu-panel">
+          <div className="top-name">שלום, {name}</div>
+          <h1>משחק נגד חבר</h1>
+          <button className="primary-button" onClick={openFriendGameSettings}>צור משחק</button>
+          <button className="secondary-button" onClick={openJoinFromFriendMenu}>הצטרף למשחק</button>
+          <button className="link-button" onClick={() => setScreen('menu')}>חזרה לתפריט</button>
           {error && <p className="error-text">{error}</p>}
         </section>
       </main>
@@ -238,7 +289,7 @@ function App() {
               placeholder="הכנס קוד משחק"
             />
             <button className="primary-button" onClick={joinRoom}>הצטרף</button>
-            <button className="link-button" onClick={() => setScreen('menu')}>חזרה לתפריט</button>
+            <button className="link-button" onClick={() => setScreen(joinBackScreen)}>חזרה</button>
           </div>
           {error && <p className="error-text">{error}</p>}
         </section>
@@ -247,10 +298,11 @@ function App() {
   }
 
   if (screen === 'create') {
+    const isBotGame = Boolean(createSettings.botGame);
     return (
       <main className="app-shell center-screen">
         <section className="panel create-panel">
-          <h1>יצירת משחק</h1>
+          <h1>{isBotGame ? 'משחק נגד בוט' : 'יצירת משחק נגד חבר'}</h1>
           <div className="settings-grid">
             <label>
               סף יניב
@@ -272,20 +324,7 @@ function App() {
                 onChange={(event) => setCreateSettings({ ...createSettings, eliminationScore: event.target.value })}
               />
             </label>
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={createSettings.botGame}
-                onChange={(event) =>
-                  setCreateSettings({
-                    ...createSettings,
-                    botGame: event.target.checked
-                  })
-                }
-              />
-              משחק נגד בוטים
-            </label>
-            {createSettings.botGame && (
+            {isBotGame && (
               <label>
                 מספר שחקנים כולל
                 <select
@@ -299,8 +338,10 @@ function App() {
               </label>
             )}
           </div>
-          <button className="primary-button" onClick={createRoom}>צור משחק</button>
-          <button className="link-button" onClick={() => setScreen('menu')}>חזרה לתפריט</button>
+          <button className="primary-button" onClick={createRoom}>
+            {isBotGame ? 'התחל משחק נגד בוטים' : 'צור משחק'}
+          </button>
+          <button className="link-button" onClick={() => setScreen(isBotGame ? 'menu' : 'friendMenu')}>חזרה</button>
           {error && <p className="error-text">{error}</p>}
         </section>
       </main>
