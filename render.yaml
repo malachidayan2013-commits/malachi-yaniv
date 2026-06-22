@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: yaniv-game
+    name: malachi-yaniv
     env: node
     plan: free
     buildCommand: npm run install:all && npm run build
