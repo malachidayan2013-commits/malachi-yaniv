@@ -268,7 +268,7 @@ function App() {
             </button>
 
             <button className="mode-card-button" onClick={() => setScreen('friendMenu')}>
-              <span className="mode-icon">👥</span>
+              <span className="mode-icon">⚔️</span>
               <strong>שחק נגד חבר</strong>
               <span>צור חדר או הצטרף לקוד</span>
             </button>
