@@ -199,32 +199,6 @@ function App() {
     navigator.clipboard?.writeText(url);
   }
 
-  if (screen === 'login') {
-    return (
-      <main className="app-shell center-screen">
-        <section className="panel login-panel">
-          <h1>יניב</h1>
-
-          <form onSubmit={submitName} className="stack-form">
-            <label htmlFor="playerName">הכנס את שמך</label>
-            <input
-              id="playerName"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="הכנס כאן את שמך"
-              autoFocus
-            />
-            <button className="primary-button" type="submit">
-              המשך
-            </button>
-          </form>
-
-          {error && <p className="error-text">{error}</p>}
-        </section>
-      </main>
-    );
-  }
-
   function openBotGameSettings() {
     setCreateSettings((current) => ({
       ...current,
@@ -253,12 +227,42 @@ function App() {
     setError('');
   }
 
+  if (screen === 'login') {
+    return (
+      <main className="app-shell center-screen">
+        <section className="panel login-panel">
+          <h1>יניב</h1>
+
+          <form onSubmit={submitName} className="stack-form">
+            <label htmlFor="playerName">הכנס את שמך</label>
+            <input
+              id="playerName"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="הכנס כאן את שמך"
+              autoFocus
+            />
+            <button className="primary-button" type="submit">
+              המשך
+            </button>
+          </form>
+
+          {error && <p className="error-text">{error}</p>}
+        </section>
+      </main>
+    );
+  }
+
   if (screen === 'menu') {
     return (
       <main className="app-shell center-screen">
         <section className="panel menu-panel game-mode-panel">
           <div className="top-name">שלום, {name}</div>
-          <h1>בחר מצב משחק</h1>
+
+          <h1>יניב אונליין</h1>
+          <p className="menu-subtitle">
+            שחקו יניב נגד חברים או נגד בוטים, בחינם וישירות מהדפדפן.
+          </p>
 
           <div className="mode-choice-grid">
             <button className="mode-card-button" onClick={openBotGameSettings}>
@@ -275,10 +279,12 @@ function App() {
           </div>
 
           <button
+            type="button"
             className="how-to-button"
             onClick={() => setScreen('howToPlay')}
           >
-            איך משחקים?
+            <span className="how-to-icon">?</span>
+            <span>איך משחקים?</span>
           </button>
 
           <button className="link-button" onClick={() => setScreen('login')}>
@@ -295,43 +301,70 @@ function App() {
     return (
       <main className="app-shell center-screen">
         <section className="panel how-to-panel">
-          <h1>איך משחקים יניב?</h1>
-
-          <div className="how-to-content">
+          <div className="how-to-hero">
+            <span className="how-to-main-icon">🃏</span>
+            <h1>איך משחקים יניב?</h1>
             <p>
-              יניב הוא משחק קלפים שבו המטרה היא להישאר עם כמה שפחות נקודות ביד.
+              יניב הוא משחק קלפים ישראלי שבו המטרה היא לסיים כל סבב עם כמה שפחות נקודות ביד.
               באתר אפשר לשחק יניב אונליין נגד בוטים או לפתוח חדר פרטי ולשחק נגד חברים.
             </p>
+          </div>
 
-            <h2>מה עושים בכל תור?</h2>
-            <p>
-              בכל תור קודם זורקים קלף אחד, כמה קלפים מאותו מספר, או רצף חוקי מאותה צורה.
-              אחרי הזריקה לוקחים קלף חדש מהקופה המוסתרת או מהקלף הגלוי.
-            </p>
+          <div className="rules-grid">
+            <article className="rule-card">
+              <span className="rule-icon">🎯</span>
+              <h2>מטרת המשחק</h2>
+              <p>
+                המטרה היא להישאר עם סכום קלפים נמוך ככל האפשר. ככל שהניקוד המצטבר שלך
+                גבוה יותר, אתה מתקרב להדחה מהמשחק.
+              </p>
+            </article>
 
-            <h2>מתי אומרים יניב?</h2>
-            <p>
-              כאשר סכום הקלפים ביד שווה לסף יניב או נמוך ממנו, אפשר ללחוץ על
-              הכפתור “הגד יניב”. ברירת המחדל באתר היא סף 7.
-            </p>
+            <article className="rule-card">
+              <span className="rule-icon">🔁</span>
+              <h2>מה עושים בתור?</h2>
+              <p>
+                בכל תור קודם זורקים קלף אחד, כמה קלפים מאותו מספר, או רצף חוקי של
+                3 קלפים ומעלה מאותה צורה. לאחר מכן לוקחים קלף מהקופה המוסתרת או מהקלף הגלוי.
+              </p>
+            </article>
 
-            <h2>מה זה אסף?</h2>
-            <p>
-              אם שחקן אמר יניב, אבל לשחקן אחר יש סכום קלפים נמוך יותר או שווה לו,
-              המערכת מזהה אסף באופן אוטומטי ומחשבת את הניקוד.
-            </p>
+            <article className="rule-card">
+              <span className="rule-icon">📣</span>
+              <h2>מתי אומרים יניב?</h2>
+              <p>
+                כאשר סכום הקלפים ביד שווה לסף יניב או נמוך ממנו, אפשר ללחוץ על
+                “הגד יניב”. ברירת המחדל באתר היא סף 7, אך אפשר לשנות זאת ביצירת המשחק.
+              </p>
+            </article>
 
-            <h2>איך מנצחים?</h2>
-            <p>
-              אחרי כל סבב מתווסף ניקוד לשחקנים. מי שעובר את ניקוד ההדחה מודח.
-              השחקן האחרון שנשאר במשחק הוא המנצח.
-            </p>
+            <article className="rule-card">
+              <span className="rule-icon">⚠️</span>
+              <h2>מה זה אסף?</h2>
+              <p>
+                אם שחקן אמר יניב, אבל לשחקן אחר יש סכום קלפים נמוך יותר או שווה לו,
+                המערכת מזהה אסף באופן אוטומטי ומחשבת את הניקוד.
+              </p>
+            </article>
 
-            <h2>מהי הדבקה?</h2>
-            <p>
-              אם זרקת קלף מסוים ולקחת מהקופה המוסתרת קלף עם אותו ערך, יש לך
-              3 שניות להדביק את הקלף החדש לערימה ולהיפטר ממנו.
-            </p>
+            <article className="rule-card">
+              <span className="rule-icon">⚡</span>
+              <h2>מהי הדבקה?</h2>
+              <p>
+                אם זרקת קלף מסוים ולקחת מהקופה המוסתרת קלף עם אותו ערך, יש לך
+                3 שניות להדביק את הקלף החדש לערימה ולהיפטר ממנו. הדבקה לא מתאפשרת
+                כאשר לוקחים מהקלף הגלוי.
+              </p>
+            </article>
+
+            <article className="rule-card">
+              <span className="rule-icon">🏆</span>
+              <h2>איך מנצחים?</h2>
+              <p>
+                בסוף כל סבב מתווסף ניקוד לשחקנים. מי שעובר את ניקוד ההדחה מודח.
+                השחקן האחרון שנשאר במשחק הוא המנצח.
+              </p>
+            </article>
           </div>
 
           <button className="primary-button" onClick={() => setScreen('menu')}>
