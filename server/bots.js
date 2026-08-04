@@ -1,121 +1,122 @@
 import { handValue } from './deck.js';
 
-const rankOrder = { A: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, J: 11, Q: 12, K: 13 };
-const suitOrder = { spades: 1, clubs: 2, diamonds: 3, hearts: 4 };
+const rankOrder = {
+  JOKER: 0,
+  A: 1,
+  2: 2,
+  3: 3,
+  4: 4,
+  5: 5,
+  6: 6,
+  7: 7,
+  8: 8,
+  9: 9,
+  10: 10,
+  J: 11,
+  Q: 12,
+  K: 13
+};
+
+const suitOrder = {
+  spades: 1,
+  clubs: 2,
+  diamonds: 3,
+  hearts: 4,
+  joker: 0
+};
 
 export function createBotName(index) {
   return `בוט${index + 1}`;
 }
 
+function isJoker(card) {
+  return Boolean(card?.isJoker || card?.rank === 'JOKER');
+}
+
 function sortedCards(cards = []) {
   return [...cards].sort((a, b) => {
-    const suitDiff = (suitOrder[a.suit] || 0) - (suitOrder[b.suit] || 0);
-    if (suitDiff !== 0) return suitDiff;
-    return (rankOrder[a.rank] || a.value) - (rankOrder[b.rank] || b.value);
+    const rankDiff = (rankOrder[a.rank] || a.value || 0) - (rankOrder[b.rank] || b.value || 0);
+    if (rankDiff !== 0) return rankDiff;
+    return (suitOrder[a.suit] || 0) - (suitOrder[b.suit] || 0);
   });
 }
 
-function uniqueByKey(items, keyFn) {
-  const seen = new Set();
-  const result = [];
-  for (const item of items) {
-    const key = keyFn(item);
-    if (!seen.has(key)) {
-      seen.add(key);
-      result.push(item);
-    }
+function groupByRank(cards = []) {
+  const groups = new Map();
+
+  for (const card of cards) {
+    if (isJoker(card)) continue;
+    if (!groups.has(card.rank)) groups.set(card.rank, []);
+    groups.get(card.rank).push(card);
   }
-  return result;
+
+  return [...groups.values()].filter((group) => group.length >= 2);
 }
 
-function legalDiscardOptions(hand = []) {
-  const options = [];
+function chooseHighestSingle(hand = []) {
+  const nonJokers = hand.filter((card) => !isJoker(card));
+  const candidates = nonJokers.length ? nonJokers : hand;
 
-  for (const card of hand) {
-    options.push([card]);
-  }
-
-  const byRank = new Map();
-  for (const card of hand) {
-    if (!byRank.has(card.rank)) byRank.set(card.rank, []);
-    byRank.get(card.rank).push(card);
-  }
-  for (const cards of byRank.values()) {
-    if (cards.length >= 2) options.push(sortedCards(cards));
-  }
-
-  const bySuit = new Map();
-  for (const card of hand) {
-    if (!bySuit.has(card.suit)) bySuit.set(card.suit, []);
-    bySuit.get(card.suit).push(card);
-  }
-
-  for (const cards of bySuit.values()) {
-    const sorted = sortedCards(cards);
-    for (let start = 0; start < sorted.length; start += 1) {
-      const run = [sorted[start]];
-      for (let end = start + 1; end < sorted.length; end += 1) {
-        const previousValue = rankOrder[sorted[end - 1].rank] || sorted[end - 1].value;
-        const currentValue = rankOrder[sorted[end].rank] || sorted[end].value;
-        if (currentValue === previousValue + 1) {
-          run.push(sorted[end]);
-          if (run.length >= 3) options.push([...run]);
-        } else if (currentValue > previousValue + 1) {
-          break;
-        }
-      }
-    }
-  }
-
-  return uniqueByKey(options, (cards) => sortedCards(cards).map((card) => card.id).join('|'));
+  return [...candidates].sort((a, b) => {
+    const valueDiff = (b.value || 0) - (a.value || 0);
+    if (valueDiff !== 0) return valueDiff;
+    return (rankOrder[b.rank] || 0) - (rankOrder[a.rank] || 0);
+  })[0];
 }
 
-function drawSourceScore(remainingHand, topDiscard) {
-  if (!topDiscard) return { source: 'deck', score: 0 };
+function shouldTakeVisibleCard(hand = [], topDiscard) {
+  if (!topDiscard) return false;
 
-  let score = 0;
-  if (topDiscard.value <= 3) score += 6;
-  if (topDiscard.value <= 5) score += 3;
+  if (isJoker(topDiscard)) return true;
+  if ((topDiscard.value || 0) <= 4) return true;
 
-  if (remainingHand.some((card) => card.rank === topDiscard.rank)) score += 5;
+  const sameRankCount = hand.filter((card) => !isJoker(card) && card.rank === topDiscard.rank).length;
+  if (sameRankCount >= 1) return true;
 
-  const suitValues = remainingHand
-    .filter((card) => card.suit === topDiscard.suit)
-    .map((card) => rankOrder[card.rank] || card.value);
-  const value = rankOrder[topDiscard.rank] || topDiscard.value;
-  if (suitValues.includes(value - 1) || suitValues.includes(value + 1)) score += 3;
-  if (suitValues.includes(value - 2) || suitValues.includes(value + 2)) score += 2;
+  const sameSuitNeighbors = hand.filter((card) => {
+    if (isJoker(card)) return false;
+    if (card.suit !== topDiscard.suit) return false;
 
-  score -= Math.max(0, topDiscard.value - 6);
-  return score > 1 ? { source: 'discard', score } : { source: 'deck', score };
+    const diff = Math.abs((rankOrder[card.rank] || 0) - (rankOrder[topDiscard.rank] || 0));
+    return diff === 1 || diff === 2;
+  });
+
+  return sameSuitNeighbors.length >= 1;
+}
+
+export function shouldBotDeclareYaniv(hand = [], yanivThreshold = 7) {
+  const value = handValue(hand);
+
+  if (value > yanivThreshold) return false;
+
+  if (value <= Math.max(4, yanivThreshold - 2)) return true;
+
+  return Math.random() < 0.65;
 }
 
 export function chooseBotMove(hand = [], topDiscard = null) {
-  const options = legalDiscardOptions(hand);
-  if (!options.length) return { cardIds: [], source: 'deck' };
+  const sorted = sortedCards(hand);
+  const rankGroups = groupByRank(sorted);
 
-  const ranked = options
-    .map((cards) => {
-      const ids = new Set(cards.map((card) => card.id));
-      const remaining = hand.filter((card) => !ids.has(card.id));
-      const discardedValue = cards.reduce((sum, card) => sum + card.value, 0);
-      const sourceChoice = drawSourceScore(remaining, topDiscard);
-      const score = discardedValue + cards.length * 1.5 + sourceChoice.score - Math.max(0, handValue(remaining) - handValue(hand));
-      return { cards, remaining, source: sourceChoice.source, score };
-    })
-    .sort((a, b) => b.score - a.score);
+  let selectedCards = [];
 
-  const bestChoices = ranked.slice(0, Math.min(3, ranked.length));
-  const chosen = bestChoices[Math.floor(Math.random() * bestChoices.length)];
+  if (rankGroups.length) {
+    const bestGroup = rankGroups.sort((a, b) => {
+      const sumA = a.reduce((sum, card) => sum + (card.value || 0), 0);
+      const sumB = b.reduce((sum, card) => sum + (card.value || 0), 0);
+      return sumB - sumA;
+    })[0];
+
+    selectedCards = bestGroup;
+  } else {
+    const highest = chooseHighestSingle(sorted);
+    selectedCards = highest ? [highest] : [];
+  }
+
+  const source = shouldTakeVisibleCard(hand, topDiscard) ? 'discard' : 'deck';
+
   return {
-    cardIds: chosen.cards.map((card) => card.id),
-    source: chosen.source
+    cardIds: selectedCards.map((card) => card.id),
+    source
   };
-}
-
-export function shouldBotDeclareYaniv(hand, threshold) {
-  const value = handValue(hand);
-  if (value > threshold) return false;
-  if (value <= Math.floor(threshold / 2)) return Math.random() < 0.85;
-  return Math.random() < 0.45;
 }

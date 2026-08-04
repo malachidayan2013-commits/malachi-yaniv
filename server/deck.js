@@ -1,11 +1,6 @@
-export const SUITS = [
-  { key: 'spades', symbol: '♠', color: 'black' },
-  { key: 'clubs', symbol: '♣', color: 'black' },
-  { key: 'hearts', symbol: '♥', color: 'red' },
-  { key: 'diamonds', symbol: '♦', color: 'red' }
-];
+const suits = ['spades', 'clubs', 'diamonds', 'hearts'];
 
-export const RANKS = [
+const ranks = [
   { rank: 'A', value: 1 },
   { rank: '2', value: 2 },
   { rank: '3', value: 3 },
@@ -23,30 +18,51 @@ export const RANKS = [
 
 export function createDeck() {
   const deck = [];
-  for (const suit of SUITS) {
-    for (const rank of RANKS) {
+
+  for (const suit of suits) {
+    for (const card of ranks) {
       deck.push({
-        id: `${rank.rank}-${suit.key}`,
-        rank: rank.rank,
-        value: rank.value,
-        suit: suit.key,
-        symbol: suit.symbol,
-        color: suit.color
+        id: `${suit}-${card.rank}`,
+        suit,
+        rank: card.rank,
+        value: card.value,
+        isJoker: false
       });
     }
   }
+
+  deck.push({
+    id: 'joker-red',
+    suit: 'joker',
+    rank: 'JOKER',
+    value: 0,
+    isJoker: true,
+    color: 'red'
+  });
+
+  deck.push({
+    id: 'joker-black',
+    suit: 'joker',
+    rank: 'JOKER',
+    value: 0,
+    isJoker: true,
+    color: 'black'
+  });
+
   return deck;
 }
 
 export function shuffleDeck(deck) {
-  const copy = [...deck];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
+  const shuffled = [...deck];
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  return copy;
+
+  return shuffled;
 }
 
-export function handValue(hand) {
-  return hand.reduce((sum, card) => sum + card.value, 0);
+export function handValue(hand = []) {
+  return hand.reduce((sum, card) => sum + Number(card?.value || 0), 0);
 }

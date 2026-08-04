@@ -8,35 +8,92 @@ const defaultServerUrl =
     ? 'http://localhost:10000'
     : window.location.origin;
 
-const suitOrder = { spades: 1, clubs: 2, diamonds: 3, hearts: 4 };
-const rankOrder = { A: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, J: 11, Q: 12, K: 13 };
+const suitOrder = { joker: 0, spades: 1, clubs: 2, diamonds: 3, hearts: 4 };
+
+const rankOrder = {
+  JOKER: 0,
+  A: 1,
+  2: 2,
+  3: 3,
+  4: 4,
+  5: 5,
+  6: 6,
+  7: 7,
+  8: 8,
+  9: 9,
+  10: 10,
+  J: 11,
+  Q: 12,
+  K: 13
+};
+
+function isJoker(card) {
+  return Boolean(card?.isJoker || card?.rank === 'JOKER');
+}
 
 function sortedCards(cards = []) {
   return [...cards].sort((a, b) => {
-    const rankDiff = (rankOrder[a.rank] || a.value) - (rankOrder[b.rank] || b.value);
+    const rankDiff = (rankOrder[a.rank] || a.value || 0) - (rankOrder[b.rank] || b.value || 0);
     if (rankDiff !== 0) return rankDiff;
     return (suitOrder[a.suit] || 0) - (suitOrder[b.suit] || 0);
   });
+}
+
+function nonJokers(cards = []) {
+  return cards.filter((card) => !isJoker(card));
+}
+
+function canBeSameRank(cards = []) {
+  if (!cards.length) return false;
+
+  const realCards = nonJokers(cards);
+  if (realCards.length <= 1) return true;
+
+  return realCards.every((card) => card.rank === realCards[0].rank);
+}
+
+function canCompleteSequence(cards = []) {
+  if (cards.length < 3) return false;
+
+  const realCards = nonJokers(cards);
+  const jokerCount = cards.length - realCards.length;
+
+  if (realCards.length === 0) return true;
+
+  const suit = realCards[0].suit;
+  if (!realCards.every((card) => card.suit === suit)) return false;
+
+  const values = sortedCards(realCards).map((card) => rankOrder[card.rank] || card.value);
+  const uniqueValues = [...new Set(values)];
+
+  if (uniqueValues.length !== values.length) return false;
+
+  const min = uniqueValues[0];
+  const max = uniqueValues[uniqueValues.length - 1];
+  const gapsInside = max - min + 1 - uniqueValues.length;
+
+  if (gapsInside > jokerCount) return false;
+
+  const totalLength = cards.length;
+
+  for (let start = Math.max(1, max - totalLength + 1); start <= Math.min(min, 13 - totalLength + 1); start += 1) {
+    const end = start + totalLength - 1;
+
+    if (min >= start && max <= end) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function isLegalDiscardSelection(cards = []) {
   if (cards.length === 0) return false;
   if (cards.length === 1) return true;
 
-  const sameRank = cards.every((card) => card.rank === cards[0].rank);
-  if (sameRank) return true;
+  if (canBeSameRank(cards)) return true;
 
-  if (cards.length < 3) return false;
-
-  const sameSuit = cards.every((card) => card.suit === cards[0].suit);
-  if (!sameSuit) return false;
-
-  const values = sortedCards(cards).map((card) => rankOrder[card.rank] || card.value);
-  for (let i = 1; i < values.length; i += 1) {
-    if (values[i] !== values[i - 1] + 1) return false;
-  }
-
-  return true;
+  return canCompleteSequence(cards);
 }
 
 function App() {
@@ -86,6 +143,7 @@ function App() {
     event.preventDefault();
 
     const cleanName = name.trim();
+
     if (!cleanName) {
       setError('צריך להכניס שם');
       return;
@@ -260,9 +318,7 @@ function App() {
           <div className="top-name">שלום, {name}</div>
 
           <h1>יניב אונליין</h1>
-          <p className="menu-subtitle">
-            שחקו יניב נגד חברים או נגד בוטים, בחינם וישירות מהדפדפן.
-          </p>
+          <p className="menu-subtitle">שחקו יניב נגד חברים או נגד בוטים, בחינם וישירות מהדפדפן.</p>
 
           <div className="mode-choice-grid">
             <button className="mode-card-button" onClick={openBotGameSettings}>
@@ -278,11 +334,7 @@ function App() {
             </button>
           </div>
 
-          <button
-            type="button"
-            className="how-to-button"
-            onClick={() => setScreen('howToPlay')}
-          >
+          <button type="button" className="how-to-button" onClick={() => setScreen('howToPlay')}>
             <span className="how-to-icon">?</span>
             <span>איך משחקים?</span>
           </button>
@@ -298,81 +350,7 @@ function App() {
   }
 
   if (screen === 'howToPlay') {
-    return (
-      <main className="app-shell center-screen">
-        <section className="panel how-to-panel">
-          <div className="how-to-hero">
-            <span className="how-to-main-icon">🃏</span>
-            <h1>איך משחקים יניב?</h1>
-            <p>
-              יניב הוא משחק קלפים ישראלי שבו המטרה היא לסיים כל סבב עם כמה שפחות נקודות ביד.
-              באתר אפשר לשחק יניב אונליין נגד בוטים או לפתוח חדר פרטי ולשחק נגד חברים.
-            </p>
-          </div>
-
-          <div className="rules-grid">
-            <article className="rule-card">
-              <span className="rule-icon">🎯</span>
-              <h2>מטרת המשחק</h2>
-              <p>
-                המטרה היא להישאר עם סכום קלפים נמוך ככל האפשר. ככל שהניקוד המצטבר שלך
-                גבוה יותר, אתה מתקרב להדחה מהמשחק.
-              </p>
-            </article>
-
-            <article className="rule-card">
-              <span className="rule-icon">🔁</span>
-              <h2>מה עושים בתור?</h2>
-              <p>
-                בכל תור קודם זורקים קלף אחד, כמה קלפים מאותו מספר, או רצף חוקי של
-                3 קלפים ומעלה מאותה צורה. לאחר מכן לוקחים קלף מהקופה המוסתרת או מהקלף הגלוי.
-              </p>
-            </article>
-
-            <article className="rule-card">
-              <span className="rule-icon">📣</span>
-              <h2>מתי אומרים יניב?</h2>
-              <p>
-                כאשר סכום הקלפים ביד שווה לסף יניב או נמוך ממנו, אפשר ללחוץ על
-                “הגד יניב”. ברירת המחדל באתר היא סף 7, אך אפשר לשנות זאת ביצירת המשחק.
-              </p>
-            </article>
-
-            <article className="rule-card">
-              <span className="rule-icon">⚠️</span>
-              <h2>מה זה אסף?</h2>
-              <p>
-                אם שחקן אמר יניב, אבל לשחקן אחר יש סכום קלפים נמוך יותר או שווה לו,
-                המערכת מזהה אסף באופן אוטומטי ומחשבת את הניקוד.
-              </p>
-            </article>
-
-            <article className="rule-card">
-              <span className="rule-icon">⚡</span>
-              <h2>מהי הדבקה?</h2>
-              <p>
-                אם זרקת קלף מסוים ולקחת מהקופה המוסתרת קלף עם אותו ערך, יש לך
-                3 שניות להדביק את הקלף החדש לערימה ולהיפטר ממנו. הדבקה לא מתאפשרת
-                כאשר לוקחים מהקלף הגלוי.
-              </p>
-            </article>
-
-            <article className="rule-card">
-              <span className="rule-icon">🏆</span>
-              <h2>איך מנצחים?</h2>
-              <p>
-                בסוף כל סבב מתווסף ניקוד לשחקנים. מי שעובר את ניקוד ההדחה מודח.
-                השחקן האחרון שנשאר במשחק הוא המנצח.
-              </p>
-            </article>
-          </div>
-
-          <button className="primary-button" onClick={() => setScreen('menu')}>
-            חזרה לתפריט
-          </button>
-        </section>
-      </main>
-    );
+    return <HowToPlayScreen onBack={() => setScreen('menu')} />;
   }
 
   if (screen === 'friendMenu') {
@@ -515,6 +493,117 @@ function App() {
   );
 }
 
+function HowToPlayScreen({ onBack }) {
+  const [openRuleIds, setOpenRuleIds] = useState(new Set());
+
+  const rules = [
+    {
+      id: 'goal',
+      icon: '🎯',
+      title: 'מטרת המשחק',
+      text: 'המטרה היא להישאר עם סכום קלפים נמוך ככל האפשר. ככל שהניקוד המצטבר שלך גבוה יותר, אתה מתקרב להדחה מהמשחק.'
+    },
+    {
+      id: 'turn',
+      icon: '🔁',
+      title: 'מה עושים בתור?',
+      text: 'בכל תור קודם זורקים קלף אחד, כמה קלפים מאותו מספר, או רצף חוקי של 3 קלפים ומעלה מאותה צורה. ג׳וקר יכול להשלים רצף או להצטרף לקלפים מאותו מספר. לאחר מכן לוקחים קלף מהקופה המוסתרת או מהקלף הגלוי.'
+    },
+    {
+      id: 'yaniv',
+      icon: '📣',
+      title: 'מתי אומרים יניב?',
+      text: 'כאשר סכום הקלפים ביד שווה לסף יניב או נמוך ממנו, אפשר ללחוץ על “הגד יניב”. ברירת המחדל באתר היא סף 7, אך אפשר לשנות זאת ביצירת המשחק.'
+    },
+    {
+      id: 'asaf',
+      icon: '⚠️',
+      title: 'מה זה אסף?',
+      text: 'אם שחקן אמר יניב, אבל לשחקן אחר יש סכום קלפים נמוך יותר או שווה לו, המערכת מזהה אסף באופן אוטומטי ומחשבת את הניקוד.'
+    },
+    {
+      id: 'paste',
+      icon: '⚡',
+      title: 'מהי הדבקה?',
+      text: 'אם זרקת קלף מסוים ולקחת מהקופה המוסתרת קלף עם אותו ערך, יש לך 3 שניות להדביק את הקלף החדש לערימה ולהיפטר ממנו. הדבקה לא מתאפשרת כאשר לוקחים מהקלף הגלוי. ג׳וקר יכול להיחשב כקלף מתאים לצורך התאמה.'
+    },
+    {
+      id: 'joker',
+      icon: '🃏',
+      title: 'מה עושה ג׳וקר?',
+      text: 'ג׳וקר שווה 0 נקודות. הוא יכול להיות כל קלף שתרצה, להשלים רצף מאותה צורה או להצטרף לקבוצה של קלפים מאותו מספר.'
+    },
+    {
+      id: 'win',
+      icon: '🏆',
+      title: 'איך מנצחים?',
+      text: 'בסוף כל סבב מתווסף ניקוד לשחקנים. מי שעובר את ניקוד ההדחה מודח. השחקן האחרון שנשאר במשחק הוא המנצח.'
+    }
+  ];
+
+  function toggleRule(ruleId) {
+    setOpenRuleIds((current) => {
+      const next = new Set(current);
+
+      if (next.has(ruleId)) {
+        next.delete(ruleId);
+      } else {
+        next.add(ruleId);
+      }
+
+      return next;
+    });
+  }
+
+  return (
+    <main className="app-shell center-screen">
+      <section className="panel how-to-panel">
+        <div className="how-to-hero">
+          <h1>
+            <span className="how-to-title-icon">🃏</span>
+            איך משחקים יניב?
+          </h1>
+
+          <p>
+            יניב הוא משחק קלפים ישראלי שבו המטרה היא לסיים כל סבב עם כמה שפחות נקודות ביד.
+            באתר אפשר לשחק יניב אונליין נגד בוטים או לפתוח חדר פרטי ולשחק נגד חברים.
+          </p>
+        </div>
+
+        <div className="rules-accordion">
+          {rules.map((rule) => {
+            const isOpen = openRuleIds.has(rule.id);
+
+            return (
+              <article key={rule.id} className={isOpen ? 'rule-accordion-item open' : 'rule-accordion-item'}>
+                <button
+                  type="button"
+                  className="rule-toggle"
+                  onClick={() => toggleRule(rule.id)}
+                  aria-expanded={isOpen}
+                >
+                  <span className="rule-title-row">
+                    <span className="rule-icon-inline">{rule.icon}</span>
+                    <span>{rule.title}</span>
+                  </span>
+
+                  <span className="rule-chevron">{isOpen ? '−' : '+'}</span>
+                </button>
+
+                {isOpen && <p className="rule-content">{rule.text}</p>}
+              </article>
+            );
+          })}
+        </div>
+
+        <button className="primary-button" onClick={onBack}>
+          חזרה לתפריט
+        </button>
+      </section>
+    </main>
+  );
+}
+
 function GameScreen({
   room,
   mySocketId,
@@ -608,9 +697,7 @@ function GameScreen({
     if (!canSelectCards) return;
 
     setSelectedCardIds((current) =>
-      current.includes(card.id)
-        ? current.filter((id) => id !== card.id)
-        : [...current, card.id]
+      current.includes(card.id) ? current.filter((id) => id !== card.id) : [...current, card.id]
     );
   }
 
@@ -799,9 +886,7 @@ function GameScreen({
             </div>
 
             <div className="action-row">
-              {selectedCardIds.length > 0 && !legalSelection && (
-                <span className="warning-text">הבחירה לא חוקית</span>
-              )}
+              {selectedCardIds.length > 0 && !legalSelection && <span className="warning-text">הבחירה לא חוקית</span>}
 
               {room.canDeclareYaniv && (
                 <button className="yaniv-button" onClick={onYaniv}>
