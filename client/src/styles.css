@@ -1228,3 +1228,33 @@ button.how-to-button:hover {
   transform: scale(1.32);
   transform-origin: center;
 }
+
+/* Strong joker image zoom fix */
+
+.card.joker-card {
+  position: relative !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  border: 2px solid rgba(242, 184, 75, 0.9) !important;
+}
+
+.card.joker-card .joker-card-image {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+
+  width: 155% !important;
+  height: 155% !important;
+  max-width: none !important;
+  max-height: none !important;
+
+  transform: translate(-50%, -50%) !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+
+  border-radius: 0 !important;
+  display: block !important;
+  user-select: none !important;
+  pointer-events: none !important;
+}
