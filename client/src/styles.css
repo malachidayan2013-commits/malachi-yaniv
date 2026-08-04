@@ -1225,6 +1225,6 @@ button.how-to-button:hover {
   pointer-events: none;
 
   /* זה מה שמגדיל את הג׳וקר */
-  transform: scale(1.22);
+  transform: scale(1.32);
   transform-origin: center;
 }
