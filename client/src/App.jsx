@@ -285,10 +285,6 @@ function App() {
             שנה שם
           </button>
 
-          <button className="link-button" onClick={() => setScreen('login')}>
-            שנה שם
-          </button>
-
           {error && <p className="error-text">{error}</p>}
         </section>
       </main>
