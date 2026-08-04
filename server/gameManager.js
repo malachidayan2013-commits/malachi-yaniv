@@ -204,7 +204,11 @@ function canCompleteSequence(cards = []) {
 
   const totalLength = cards.length;
 
-  for (let start = Math.max(1, max - totalLength + 1); start <= Math.min(min, 13 - totalLength + 1); start += 1) {
+  for (
+    let start = Math.max(1, max - totalLength + 1);
+    start <= Math.min(min, 13 - totalLength + 1);
+    start += 1
+  ) {
     const end = start + totalLength - 1;
 
     if (min >= start && max <= end) {
@@ -585,7 +589,10 @@ function discardCards(io, socket, cardIds) {
   }
 
   if (!isLegalDiscardSelection(selected)) {
-    socket.emit('gameError', 'אפשר לזרוק קלף בודד, כמה קלפים מאותו ערך, או רצף של 3+ מאותה צורה. ג׳וקר יכול להשלים רצף או סט.');
+    socket.emit(
+      'gameError',
+      'אפשר לזרוק קלף בודד, כמה קלפים מאותו ערך, או רצף של 3+ מאותה צורה. ג׳וקר יכול להשלים רצף או סט.'
+    );
     return;
   }
 
@@ -610,6 +617,7 @@ function makeRoundSummary(room, declarer, result) {
       name: player.name,
       handValue: result.valuesByPlayerId[player.id] ?? handValue(player.hand),
       score: player.score,
+      scoreAdded: result.scoreAddedByPlayerId[player.id] ?? 0,
       isAsaf: result.asafIds.includes(player.id)
     }));
 
@@ -625,7 +633,9 @@ function makeRoundSummary(room, declarer, result) {
 }
 
 function calculateYanivResult(room, declarer) {
-  const results = room.players.filter((player) => player.active).map((player) => ({ player, value: handValue(player.hand) }));
+  const results = room.players
+    .filter((player) => player.active)
+    .map((player) => ({ player, value: handValue(player.hand) }));
 
   const declarerValue = handValue(declarer.hand);
 
@@ -635,15 +645,19 @@ function calculateYanivResult(room, declarer) {
 
   const isAsaf = asafPlayers.length > 0;
   const valuesByPlayerId = Object.fromEntries(results.map((entry) => [entry.player.id, entry.value]));
+  const scoreAddedByPlayerId = {};
 
   for (const entry of results) {
+    let addedScore = 0;
+
     if (entry.player.id === declarer.id) {
-      entry.player.score += isAsaf ? declarerValue + 30 : 0;
-    } else if (isAsaf && asafPlayers.some((p) => p.id === entry.player.id)) {
-      entry.player.score += 0;
+      addedScore = isAsaf ? declarerValue + 30 : 0;
     } else {
-      entry.player.score += entry.value;
+      addedScore = entry.value;
     }
+
+    entry.player.score += addedScore;
+    scoreAddedByPlayerId[entry.player.id] = addedScore;
   }
 
   const eliminatedPlayers = [];
@@ -668,6 +682,7 @@ function calculateYanivResult(room, declarer) {
     asafNames: asafPlayers.map((player) => player.name),
     asafIds: asafPlayers.map((player) => player.id),
     valuesByPlayerId,
+    scoreAddedByPlayerId,
     eliminatedPlayers
   };
 }
@@ -799,10 +814,7 @@ function applyPaste(room, player, cardId) {
 
   const card = player.hand[index];
 
-  const allowed =
-    isJoker(card) ||
-    pasteWindow.jokerMatch ||
-    pasteWindow.allowedRanks.includes(card.rank);
+  const allowed = isJoker(card) || pasteWindow.jokerMatch || pasteWindow.allowedRanks.includes(card.rank);
 
   if (!allowed) {
     return { ok: false, error: 'אפשר להדביק רק קלף זהה למה שזרקת' };

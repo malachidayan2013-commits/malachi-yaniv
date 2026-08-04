@@ -76,7 +76,11 @@ function canCompleteSequence(cards = []) {
 
   const totalLength = cards.length;
 
-  for (let start = Math.max(1, max - totalLength + 1); start <= Math.min(min, 13 - totalLength + 1); start += 1) {
+  for (
+    let start = Math.max(1, max - totalLength + 1);
+    start <= Math.min(min, 13 - totalLength + 1);
+    start += 1
+  ) {
     const end = start + totalLength - 1;
 
     if (min >= start && max <= end) {
@@ -155,14 +159,6 @@ function App() {
     setError('');
   }
 
-  function quickPlay() {
-    ensureSocket();
-
-    socket.emit('quickPlay', { name }, (response) => {
-      if (!response?.ok) setError(response?.error || 'לא ניתן להיכנס למשחק');
-    });
-  }
-
   function createRoom() {
     const isBotGame = Boolean(createSettings.botGame);
 
@@ -213,10 +209,6 @@ function App() {
     });
   }
 
-  function drawCard(source) {
-    socket.emit('drawCard', { source });
-  }
-
   function discardAndDraw(cardIds, source) {
     socket.emit('discardAndDraw', { cardIds, source });
   }
@@ -240,10 +232,6 @@ function App() {
       setScreen('menu');
       setError('');
     });
-  }
-
-  function discardCards(cardIds) {
-    socket.emit('discardCards', { cardIds });
   }
 
   function declareYaniv() {
@@ -479,9 +467,7 @@ function App() {
       room={room}
       mySocketId={socket.id}
       onStart={startGame}
-      onDraw={drawCard}
       onDiscardAndDraw={discardAndDraw}
-      onDiscardCards={discardCards}
       onPaste={pasteCard}
       onYaniv={declareYaniv}
       onTogglePause={togglePause}
@@ -519,7 +505,13 @@ function HowToPlayScreen({ onBack }) {
       id: 'asaf',
       icon: '⚠️',
       title: 'מה זה אסף?',
-      text: 'אם שחקן אמר יניב, אבל לשחקן אחר יש סכום קלפים נמוך יותר או שווה לו, המערכת מזהה אסף באופן אוטומטי ומחשבת את הניקוד.'
+      text: 'אם שחקן אמר יניב, אבל לשחקן אחר יש סכום קלפים נמוך יותר או שווה לו, המערכת מזהה אסף באופן אוטומטי. במצב כזה השחקן שאמר יניב מקבל את סכום הקלפים שבידו ועוד 30 נקודות עונש.'
+    },
+    {
+      id: 'score',
+      icon: '➕',
+      title: 'על מה מוסיפים נקודות?',
+      text: 'בסוף סבב רגיל שבו מישהו אמר יניב והצליח, כל שאר השחקנים מקבלים לניקוד הכללי שלהם את סכום הקלפים שנשארו בידם. מי שאמר יניב לא מקבל נקודות באותו סבב. אם היה אסף, מי שאמר יניב מקבל את סכום הקלפים שבידו ועוד 30 נקודות, וכל שאר השחקנים — כולל מי שעשה אסף — עדיין מקבלים את סכום הקלפים שנשארו בידם.'
     },
     {
       id: 'paste',
@@ -608,7 +600,6 @@ function GameScreen({
   room,
   mySocketId,
   onStart,
-  onDraw,
   onDiscardAndDraw,
   onPaste,
   onYaniv,
@@ -799,7 +790,8 @@ function GameScreen({
               <div key={player.id} className={player.isAsaf ? 'summary-card asaf-summary' : 'summary-card'}>
                 <span>{player.name}</span>
                 <span>יד: {player.handValue}</span>
-                <span>ניקוד: {player.score}</span>
+                <span>נוסף: {player.scoreAdded ?? 0}</span>
+                <span>סה״כ: {player.score}</span>
               </div>
             ))}
           </div>
