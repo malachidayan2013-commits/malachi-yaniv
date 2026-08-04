@@ -574,12 +574,6 @@ function HowToPlayScreen({ onBack }) {
       text: 'ג׳וקר שווה 0 נקודות. הוא יכול להיות כל קלף שתרצה, להשלים רצף מאותה צורה או להצטרף לקבוצה של קלפים מאותו מספר. עם זאת, ג׳וקר שנלקח מהקופה לא פותח אפשרות הדבקה.'
     },
     {
-      id: 'bots',
-      icon: '🤖',
-      title: 'רמות בוטים',
-      text: 'במשחק נגד בוטים אפשר לבחור רמת קושי ומהירות. רמת קושי קובעת עד כמה הבוטים מקבלים החלטות טובות, ומהירות הבוטים קובעת כמה מהר הם משחקים את התור שלהם.'
-    },
-    {
       id: 'win',
       icon: '🏆',
       title: 'איך מנצחים?',
@@ -606,7 +600,7 @@ function HowToPlayScreen({ onBack }) {
       <section className="panel how-to-panel">
         <div className="how-to-hero">
           <h1>
-            <span className="how-to-title-icon">🃏</span>
+            <span className="how-to-title-icon">📖</span>
             איך משחקים יניב?
           </h1>
 

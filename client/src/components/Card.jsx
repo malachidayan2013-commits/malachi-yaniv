@@ -2,68 +2,51 @@ import React from 'react';
 
 const suitSymbols = {
   spades: '♠',
-  hearts: '♥',
+  clubs: '♣',
   diamonds: '♦',
-  clubs: '♣'
+  hearts: '♥'
 };
 
-function getSuitColor(suit) {
-  if (suit === 'hearts' || suit === 'diamonds') return 'red';
-  return 'black';
+function isRed(card) {
+  return card?.suit === 'diamonds' || card?.suit === 'hearts' || card?.color === 'red';
 }
 
-export default function Card({
-  card = null,
-  hidden = false,
-  selected = false,
-  pasteable = false,
-  onClick = null
-}) {
-  const isClickable = typeof onClick === 'function';
-  const joker = Boolean(card?.isJoker || card?.rank === 'JOKER');
+function isJoker(card) {
+  return Boolean(card?.isJoker || card?.rank === 'JOKER');
+}
 
-  const className = [
-    'playing-card',
-    hidden ? 'card-hidden' : '',
-    selected ? 'selected' : '',
-    pasteable ? 'pasteable' : '',
-    isClickable ? 'clickable' : '',
-    joker ? 'joker-card-wrapper' : ''
+function Card({ card, hidden = false, selected = false, pasteable = false, onClick, disabled = false }) {
+  const classes = [
+    'card',
+    selected ? 'selected-card' : '',
+    pasteable ? 'pasteable-card' : '',
+    hidden ? 'card-back' : '',
+    card && !hidden && isRed(card) ? 'red-card' : '',
+    card && !hidden && !isRed(card) ? 'black-card' : '',
+    card && !hidden && isJoker(card) ? 'joker-card' : ''
   ]
     .filter(Boolean)
     .join(' ');
 
   if (hidden) {
     return (
-      <button
-        type="button"
-        className={className}
-        onClick={onClick}
-        disabled={!isClickable}
-      >
-        <div className="card-back">
-          <div className="card-back-inner">YANIV</div>
-        </div>
+      <button className={classes} onClick={onClick} disabled={disabled || !onClick} type="button">
+        <span className="card-back-text">YANIV</span>
       </button>
     );
   }
 
   if (!card) {
     return (
-      <div className={className}>
-        <div className="card-empty" />
-      </div>
+      <button className="card empty-card" onClick={onClick} disabled={disabled || !onClick} type="button">
+        —
+      </button>
     );
   }
 
-  if (joker) {
+  if (isJoker(card)) {
     return (
-      <button
-        type="button"
-        className={className}
-        onClick={onClick}
-        disabled={!isClickable}
-      >
+      <button className={classes} onClick={onClick} disabled={disabled || !onClick} type="button">
         <img
           src="/cards/joker-card.png"
           alt="ג׳וקר"
@@ -74,29 +57,15 @@ export default function Card({
     );
   }
 
-  const suitSymbol = suitSymbols[card.suit] || '';
-  const suitColor = getSuitColor(card.suit);
+  const symbol = suitSymbols[card.suit] || '';
 
   return (
-    <button
-      type="button"
-      className={className}
-      onClick={onClick}
-      disabled={!isClickable}
-    >
-      <div className={`card-face ${suitColor}`}>
-        <div className="card-corner top-left">
-          <div className="card-rank">{card.rank}</div>
-          <div className="card-suit">{suitSymbol}</div>
-        </div>
-
-        <div className="card-center-symbol">{suitSymbol}</div>
-
-        <div className="card-corner bottom-right">
-          <div className="card-rank">{card.rank}</div>
-          <div className="card-suit">{suitSymbol}</div>
-        </div>
-      </div>
+    <button className={classes} onClick={onClick} disabled={disabled || !onClick} type="button">
+      <span className="card-rank">{card.rank}</span>
+      <span className="card-symbol">{symbol}</span>
+      <span className="card-rank bottom-rank">{card.rank}</span>
     </button>
   );
 }
+
+export default Card;
