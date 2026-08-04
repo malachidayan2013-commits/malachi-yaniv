@@ -1336,3 +1336,36 @@ button.how-to-button:hover {
 .joker-rank-bottom {
   display: none !important;
 }
+
+.card.joker-card {
+  position: relative !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+}
+
+.card.joker-card .joker-card-image {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  display: block !important;
+  border-radius: 12px !important;
+  user-select: none !important;
+  pointer-events: none !important;
+}
+
+.card.joker-card::before,
+.card.joker-card::after,
+.card.joker-card .card-rank,
+.card.joker-card .card-symbol,
+.card.joker-card .bottom-rank,
+.joker-rank,
+.joker-rank-bottom {
+  display: none !important;
+  content: none !important;
+}
