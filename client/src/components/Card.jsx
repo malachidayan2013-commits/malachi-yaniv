@@ -47,14 +47,12 @@ function Card({ card, hidden = false, selected = false, pasteable = false, onCli
   if (isJoker(card)) {
     return (
       <button className={classes} onClick={onClick} disabled={disabled || !onClick} type="button">
-        <span className="joker-rank">JOKER</span>
         <img
           src="/cards/joker-card.png"
           alt="ג׳וקר"
           className="joker-card-image"
           draggable="false"
         />
-        <span className="joker-rank joker-rank-bottom">JOKER</span>
       </button>
     );
   }

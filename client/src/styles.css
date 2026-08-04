@@ -1243,3 +1243,37 @@ button.how-to-button:hover {
   bottom: 6px;
   transform: rotate(180deg);
 }
+
+.card.joker-card {
+  position: relative !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+}
+
+.card.joker-card .joker-card-image {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+
+  width: 190% !important;
+  height: 190% !important;
+  max-width: none !important;
+  max-height: none !important;
+
+  transform: translate(-50%, -50%) !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+
+  border-radius: 0 !important;
+  display: block !important;
+  user-select: none !important;
+  pointer-events: none !important;
+}
+
+.joker-rank,
+.joker-rank-bottom {
+  display: none !important;
+}
