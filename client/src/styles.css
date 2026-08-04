@@ -1277,3 +1277,62 @@ button.how-to-button:hover {
 .joker-rank-bottom {
   display: none !important;
 }
+
+/* Final joker card styling */
+
+.card.joker-card {
+  position: relative !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+}
+
+.card.joker-card .joker-card-image {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+
+  width: 138% !important;
+  height: 138% !important;
+  max-width: none !important;
+  max-height: none !important;
+
+  transform: translate(-50%, -50%) !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+
+  border-radius: 0 !important;
+  display: block !important;
+  user-select: none !important;
+  pointer-events: none !important;
+}
+
+.card.joker-card::before {
+  content: "J";
+  position: absolute;
+  top: 7px;
+  left: 8px;
+  z-index: 2;
+  color: #4b216d;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.card.joker-card::after {
+  content: "J";
+  position: absolute;
+  right: 8px;
+  bottom: 7px;
+  z-index: 2;
+  color: #4b216d;
+  font-size: 18px;
+  font-weight: 900;
+  transform: rotate(180deg);
+}
+
+.joker-rank,
+.joker-rank-bottom {
+  display: none !important;
+}
