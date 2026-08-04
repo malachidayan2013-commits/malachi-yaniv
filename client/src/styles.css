@@ -1199,3 +1199,19 @@ button.how-to-button:hover {
 .secondary-button:active {
   transform: translateY(0);
 }
+
+.joker-card-wrapper {
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.joker-card-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 14px;
+  user-select: none;
+  pointer-events: none;
+}
