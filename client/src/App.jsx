@@ -113,6 +113,7 @@ function App() {
 
   const [name, setName] = useState(localStorage.getItem('yanivName') || '');
   const [screen, setScreen] = useState(name ? (pathJoinCode ? 'join' : 'menu') : 'login');
+  const [howToBackScreen, setHowToBackScreen] = useState('menu');
   const [room, setRoom] = useState(null);
   const [joinCode, setJoinCode] = useState(pathJoinCode);
   const [joinBackScreen, setJoinBackScreen] = useState('menu');
@@ -121,7 +122,9 @@ function App() {
     yanivThreshold: 7,
     eliminationScore: 150,
     botGame: false,
-    totalPlayers: 4
+    totalPlayers: 4,
+    botDifficulty: 'normal',
+    botSpeed: 'normal'
   });
 
   useEffect(() => {
@@ -173,7 +176,9 @@ function App() {
           eliminationScore: Number(createSettings.eliminationScore),
           maxPlayers: 4,
           botGame: isBotGame,
-          totalPlayers: Number(createSettings.totalPlayers)
+          totalPlayers: Number(createSettings.totalPlayers),
+          botDifficulty: createSettings.botDifficulty,
+          botSpeed: createSettings.botSpeed
         }
       },
       (response) => {
@@ -245,11 +250,23 @@ function App() {
     navigator.clipboard?.writeText(url);
   }
 
+  function openHowToPlayFromMenu() {
+    setHowToBackScreen('menu');
+    setScreen('howToPlay');
+  }
+
+  function openHowToPlayFromGame() {
+    setHowToBackScreen('game');
+    setScreen('howToPlay');
+  }
+
   function openBotGameSettings() {
     setCreateSettings((current) => ({
       ...current,
       botGame: true,
-      totalPlayers: current.totalPlayers || 4
+      totalPlayers: current.totalPlayers || 4,
+      botDifficulty: current.botDifficulty || 'normal',
+      botSpeed: current.botSpeed || 'normal'
     }));
 
     setScreen('create');
@@ -322,7 +339,7 @@ function App() {
             </button>
           </div>
 
-          <button type="button" className="how-to-button" onClick={() => setScreen('howToPlay')}>
+          <button type="button" className="how-to-button" onClick={openHowToPlayFromMenu}>
             <span className="how-to-icon">?</span>
             <span>איך משחקים?</span>
           </button>
@@ -338,7 +355,7 @@ function App() {
   }
 
   if (screen === 'howToPlay') {
-    return <HowToPlayScreen onBack={() => setScreen('menu')} />;
+    return <HowToPlayScreen onBack={() => setScreen(howToBackScreen)} />;
   }
 
   if (screen === 'friendMenu') {
@@ -432,19 +449,49 @@ function App() {
             </label>
 
             {isBotGame && (
-              <label>
-                מספר שחקנים כולל
-                <select
-                  value={createSettings.totalPlayers}
-                  onChange={(event) =>
-                    setCreateSettings({ ...createSettings, totalPlayers: event.target.value })
-                  }
-                >
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-              </label>
+              <>
+                <label>
+                  מספר שחקנים כולל
+                  <select
+                    value={createSettings.totalPlayers}
+                    onChange={(event) =>
+                      setCreateSettings({ ...createSettings, totalPlayers: event.target.value })
+                    }
+                  >
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                  </select>
+                </label>
+
+                <label>
+                  רמת קושי לבוטים
+                  <select
+                    value={createSettings.botDifficulty}
+                    onChange={(event) =>
+                      setCreateSettings({ ...createSettings, botDifficulty: event.target.value })
+                    }
+                  >
+                    <option value="easy">קל</option>
+                    <option value="normal">רגיל</option>
+                    <option value="hard">קשה</option>
+                  </select>
+                </label>
+
+                <label>
+                  מהירות הבוטים
+                  <select
+                    value={createSettings.botSpeed}
+                    onChange={(event) =>
+                      setCreateSettings({ ...createSettings, botSpeed: event.target.value })
+                    }
+                  >
+                    <option value="slow">איטי</option>
+                    <option value="normal">רגיל</option>
+                    <option value="fast">מהיר</option>
+                  </select>
+                </label>
+              </>
             )}
           </div>
 
@@ -474,6 +521,7 @@ function App() {
       onLeaveRoom={leaveRoom}
       onCopyInvite={copyInviteLink}
       onApproveNextRound={approveNextRound}
+      onShowHowToPlay={openHowToPlayFromGame}
       error={error}
     />
   );
@@ -505,25 +553,31 @@ function HowToPlayScreen({ onBack }) {
       id: 'asaf',
       icon: '⚠️',
       title: 'מה זה אסף?',
-      text: 'אם שחקן אמר יניב, אבל לשחקן אחר יש סכום קלפים נמוך יותר או שווה לו, המערכת מזהה אסף באופן אוטומטי. במצב כזה השחקן שאמר יניב מקבל את סכום הקלפים שבידו ועוד 30 נקודות עונש.'
+      text: 'אם שחקן אמר יניב, אבל לשחקן אחד או יותר יש סכום קלפים נמוך יותר או שווה לו, המערכת מזהה אסף. מי שאמר יניב מקבל את סכום הקלפים שבידו ועוד 30 נקודות על כל שחקן שעשה עליו אסף. אם שני שחקנים עשו עליו אסף — העונש הוא 60 נקודות, ואם שלושה — 90 נקודות.'
     },
     {
       id: 'score',
       icon: '➕',
       title: 'על מה מוסיפים נקודות?',
-      text: 'בסוף סבב רגיל שבו מישהו אמר יניב והצליח, כל שאר השחקנים מקבלים לניקוד הכללי שלהם את סכום הקלפים שנשארו בידם. מי שאמר יניב לא מקבל נקודות באותו סבב. אם היה אסף, מי שאמר יניב מקבל את סכום הקלפים שבידו ועוד 30 נקודות, וכל שאר השחקנים — כולל מי שעשה אסף — עדיין מקבלים את סכום הקלפים שנשארו בידם.'
+      text: 'בסוף סבב רגיל שבו מישהו אמר יניב והצליח, כל שאר השחקנים מקבלים לניקוד הכללי שלהם את סכום הקלפים שנשארו בידם. מי שאמר יניב לא מקבל נקודות באותו סבב. אם היה אסף, מי שאמר יניב מקבל את סכום הקלפים שבידו ועוד 30 נקודות על כל אסף שעשו עליו. כל שאר השחקנים, כולל מי שעשה אסף, עדיין מקבלים את סכום הקלפים שנשארו בידם.'
     },
     {
       id: 'paste',
       icon: '⚡',
       title: 'מהי הדבקה?',
-      text: 'אם זרקת קלף מסוים ולקחת מהקופה המוסתרת קלף עם אותו ערך, יש לך 3 שניות להדביק את הקלף החדש לערימה ולהיפטר ממנו. הדבקה לא מתאפשרת כאשר לוקחים מהקלף הגלוי. ג׳וקר יכול להיחשב כקלף מתאים לצורך התאמה.'
+      text: 'אם זרקת קלף או קבוצה ולקחת מהקופה המוסתרת קלף רגיל עם המספר המתאים, יש לך 3 שניות להדביק אותו לערימה ולהיפטר ממנו. בסט של אותו מספר — ההדבקה היא לאותו מספר. ברצף — ההדבקה היא רק למספר העליון ברצף. לדוגמה: אם זרקת 4 לב, 5 לב, 6 לב ולקחת 6 מכל צורה, אפשר להדביק. אם לקחת ג׳וקר — לא נפתחת הדבקה.'
     },
     {
       id: 'joker',
       icon: '🃏',
       title: 'מה עושה ג׳וקר?',
-      text: 'ג׳וקר שווה 0 נקודות. הוא יכול להיות כל קלף שתרצה, להשלים רצף מאותה צורה או להצטרף לקבוצה של קלפים מאותו מספר.'
+      text: 'ג׳וקר שווה 0 נקודות. הוא יכול להיות כל קלף שתרצה, להשלים רצף מאותה צורה או להצטרף לקבוצה של קלפים מאותו מספר. עם זאת, ג׳וקר שנלקח מהקופה לא פותח אפשרות הדבקה.'
+    },
+    {
+      id: 'bots',
+      icon: '🤖',
+      title: 'רמות בוטים',
+      text: 'במשחק נגד בוטים אפשר לבחור רמת קושי ומהירות. רמת קושי קובעת עד כמה הבוטים מקבלים החלטות טובות, ומהירות הבוטים קובעת כמה מהר הם משחקים את התור שלהם.'
     },
     {
       id: 'win',
@@ -589,7 +643,7 @@ function HowToPlayScreen({ onBack }) {
         </div>
 
         <button className="primary-button" onClick={onBack}>
-          חזרה לתפריט
+          חזרה
         </button>
       </section>
     </main>
@@ -607,6 +661,7 @@ function GameScreen({
   onLeaveRoom,
   onCopyInvite,
   onApproveNextRound,
+  onShowHowToPlay,
   error
 }) {
   const [selectedCardIds, setSelectedCardIds] = useState([]);
@@ -759,6 +814,10 @@ function GameScreen({
           )}
 
           <p className="url-line">{inviteUrl}</p>
+
+          <button type="button" className="secondary-button" onClick={onShowHowToPlay}>
+            איך משחקים?
+          </button>
         </section>
       )}
 

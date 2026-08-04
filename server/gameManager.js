@@ -50,6 +50,23 @@ function makeBotId(roomCode, index) {
   return `bot-${roomCode}-${index}-${Date.now()}`;
 }
 
+function normalizeBotDifficulty(value) {
+  return ['easy', 'normal', 'hard'].includes(value) ? value : 'normal';
+}
+
+function normalizeBotSpeed(value) {
+  return ['slow', 'normal', 'fast'].includes(value) ? value : 'normal';
+}
+
+function getBotDelay(room) {
+  const speed = normalizeBotSpeed(room?.settings?.botSpeed);
+
+  if (speed === 'fast') return 250;
+  if (speed === 'slow') return 1200;
+
+  return 650;
+}
+
 function defaultSettings(settings = {}) {
   const botGame = Boolean(settings.botGame);
   const yanivThreshold = Number(settings.yanivThreshold || 7);
@@ -61,7 +78,9 @@ function defaultSettings(settings = {}) {
     eliminationScore: Math.max(30, Math.min(300, eliminationScore)),
     maxPlayers: 4,
     botGame,
-    totalPlayers: Math.max(2, Math.min(4, totalPlayers))
+    totalPlayers: Math.max(2, Math.min(4, totalPlayers)),
+    botDifficulty: normalizeBotDifficulty(settings.botDifficulty),
+    botSpeed: normalizeBotSpeed(settings.botSpeed)
   };
 }
 
@@ -228,6 +247,64 @@ function isLegalDiscardSelection(cards = []) {
   return canCompleteSequence(cards);
 }
 
+function rankFromNumber(value) {
+  const map = {
+    1: 'A',
+    2: '2',
+    3: '3',
+    4: '4',
+    5: '5',
+    6: '6',
+    7: '7',
+    8: '8',
+    9: '9',
+    10: '10',
+    11: 'J',
+    12: 'Q',
+    13: 'K'
+  };
+
+  return map[value] || null;
+}
+
+function getPasteRankFromDiscard(discardedCards = []) {
+  if (!discardedCards.length) return null;
+
+  const realCards = nonJokers(discardedCards);
+  if (!realCards.length) return null;
+
+  if (canBeSameRank(discardedCards)) {
+    return realCards[0].rank;
+  }
+
+  if (!canCompleteSequence(discardedCards)) {
+    return null;
+  }
+
+  const values = sortedCards(realCards).map((card) => rankOrder[card.rank] || card.value);
+  const uniqueValues = [...new Set(values)];
+  const totalLength = discardedCards.length;
+
+  const min = uniqueValues[0];
+  const max = uniqueValues[uniqueValues.length - 1];
+
+  let highestPossibleEnd = null;
+
+  for (
+    let start = Math.max(1, max - totalLength + 1);
+    start <= Math.min(min, 13 - totalLength + 1);
+    start += 1
+  ) {
+    const end = start + totalLength - 1;
+
+    if (min >= start && max <= end) {
+      highestPossibleEnd = Math.max(highestPossibleEnd || 0, end);
+    }
+  }
+
+  return rankFromNumber(highestPossibleEnd);
+}
+
 function visiblePlayersFor(room, viewerId) {
   const revealAllHands = room.status === 'roundEnded' || room.status === 'finished';
 
@@ -284,8 +361,7 @@ function publicRoomState(room, viewerId) {
           discarderName: activePasteWindow.discarderName,
           targetPlayerId: activePasteWindow.targetPlayerId,
           targetPlayerName: activePasteWindow.targetPlayerName,
-          pasteCardId: activePasteWindow.pasteCardId,
-          jokerMatch: activePasteWindow.jokerMatch
+          pasteCardId: activePasteWindow.pasteCardId
         }
       : null,
     canDeclareYaniv: Boolean(
@@ -529,45 +605,6 @@ function getCurrentPlayer(room) {
   return room.players.find((player) => player.id === room.currentTurn);
 }
 
-function drawCard(io, socket, source) {
-  const room = getRoomBySocket(socket.id);
-
-  if (!room || room.status !== 'playing' || room.paused || room.pasteWindow) return;
-
-  const player = getCurrentPlayer(room);
-
-  if (!player || player.id !== socket.id) return;
-  if (!room.turnState.discarded || room.turnState.drew) return;
-
-  let card = null;
-
-  if (source === 'deck') {
-    refillDeckFromDiscard(room);
-    card = room.deck.pop();
-  } else if (source === 'discard') {
-    const availableCard = room.turnState.availableDiscardCard;
-
-    if (availableCard) {
-      const index = room.discardPile.findIndex((discardedCard) => discardedCard.id === availableCard.id);
-
-      if (index !== -1) {
-        [card] = room.discardPile.splice(index, 1);
-      }
-    }
-  }
-
-  if (!card) return;
-
-  player.hand.push(card);
-  room.turnState.drew = true;
-
-  addMessage(room, `${player.name} לקח קלף`);
-  nextTurn(room);
-  scheduleTurnTimer(io, room);
-  emitRoom(io, room);
-  scheduleBotIfNeeded(io, room);
-}
-
 function discardCards(io, socket, cardIds) {
   const room = getRoomBySocket(socket.id);
 
@@ -623,7 +660,7 @@ function makeRoundSummary(room, declarer, result) {
 
   return {
     title: result.isAsaf
-      ? `${declarer.name} אמר יניב, אבל ${result.asafNames.join(', ')} עשה אסף`
+      ? `${declarer.name} אמר יניב, אבל ${result.asafNames.join(', ')} עשו אסף`
       : `${declarer.name} אמר יניב וניצח בסיבוב`,
     declarerId: declarer.id,
     isAsaf: result.isAsaf,
@@ -651,7 +688,7 @@ function calculateYanivResult(room, declarer) {
     let addedScore = 0;
 
     if (entry.player.id === declarer.id) {
-      addedScore = isAsaf ? declarerValue + 30 : 0;
+      addedScore = isAsaf ? declarerValue + 30 * asafPlayers.length : 0;
     } else {
       addedScore = entry.value;
     }
@@ -698,7 +735,7 @@ function finishRound(io, room, declarer, result) {
   room.roundSummary = makeRoundSummary(room, declarer, result);
 
   if (result.isAsaf) {
-    addMessage(room, `${declarer.name} אמר יניב עם ${result.declarerValue}, אבל ${result.asafNames.join(', ')} עשה אסף`);
+    addMessage(room, `${declarer.name} אמר יניב עם ${result.declarerValue}, אבל ${result.asafNames.join(', ')} עשו אסף`);
   } else {
     addMessage(room, `${declarer.name} אמר יניב וניצח בסיבוב`);
   }
@@ -814,10 +851,10 @@ function applyPaste(room, player, cardId) {
 
   const card = player.hand[index];
 
-  const allowed = isJoker(card) || pasteWindow.jokerMatch || pasteWindow.allowedRanks.includes(card.rank);
+  const allowed = !isJoker(card) && pasteWindow.allowedRanks.includes(card.rank);
 
   if (!allowed) {
-    return { ok: false, error: 'אפשר להדביק רק קלף זהה למה שזרקת' };
+    return { ok: false, error: 'אפשר להדביק רק את המספר המתאים' };
   }
 
   player.hand.splice(index, 1);
@@ -879,15 +916,23 @@ function openPasteWindow(io, room, player, discardResult, drawnCard) {
   clearPasteWindow(room);
   clearTurnTimer(room);
 
-  const allowedRanks = [...new Set(discardResult.discardOrder.filter((card) => !isJoker(card)).map((card) => card.rank))];
-  const discardedHasJoker = discardResult.discardOrder.some(isJoker);
+  const pasteRank = getPasteRankFromDiscard(discardResult.discardOrder);
+  const allowedRanks = pasteRank ? [pasteRank] : [];
+
+  if (!allowedRanks.length || isJoker(drawnCard)) {
+    room.turnState = { discarded: true, drew: true, availableDiscardCard: null };
+    nextTurn(room);
+    scheduleTurnTimer(io, room);
+    emitRoom(io, room);
+    scheduleBotIfNeeded(io, room);
+    return;
+  }
 
   room.turnState = { discarded: true, drew: true, availableDiscardCard: null };
 
   room.pasteWindow = {
     expiresAt: Date.now() + 3000,
     allowedRanks,
-    jokerMatch: discardedHasJoker || isJoker(drawnCard),
     discarderId: player.id,
     discarderName: player.name,
     targetPlayerId: player.id,
@@ -901,17 +946,19 @@ function openPasteWindow(io, room, player, discardResult, drawnCard) {
   emitRoom(io, room);
 
   if (player.isBot) {
-    setTimeout(() => botPasteIfPossible(io, room.code, player.id), 350);
+    setTimeout(() => botPasteIfPossible(io, room.code, player.id), Math.max(200, getBotDelay(room) - 250));
   }
 }
 
 function isPasteMatch(discardedCards, drawnCard) {
   if (!drawnCard) return false;
+  if (isJoker(drawnCard)) return false;
 
-  if (isJoker(drawnCard)) return true;
-  if (discardedCards.some(isJoker)) return true;
+  const pasteRank = getPasteRankFromDiscard(discardedCards);
 
-  return discardedCards.some((card) => card.rank === drawnCard.rank);
+  if (!pasteRank) return false;
+
+  return drawnCard.rank === pasteRank;
 }
 
 function completeDiscardAndDrawNow(io, room, player, discardResult, source) {
@@ -950,14 +997,16 @@ function discardAndDraw(io, socket, cardIds, source) {
 function botTakeTurn(io, room, bot) {
   if (!room || room.status !== 'playing' || room.paused || room.pasteWindow || room.currentTurn !== bot.id || !bot.active) return;
 
-  if (shouldBotDeclareYaniv(bot.hand, room.settings.yanivThreshold)) {
+  const difficulty = normalizeBotDifficulty(room.settings.botDifficulty);
+
+  if (shouldBotDeclareYaniv(bot.hand, room.settings.yanivThreshold, difficulty)) {
     const result = calculateYanivResult(room, bot);
     finishRound(io, room, bot, result);
     return;
   }
 
   const topDiscard = room.discardPile.length ? room.discardPile[room.discardPile.length - 1] : null;
-  const move = chooseBotMove(bot.hand, topDiscard);
+  const move = chooseBotMove(bot.hand, topDiscard, difficulty);
   const discardResult = applyDiscard(room, bot, move.cardIds);
 
   if (discardResult.ok) {
@@ -982,7 +1031,7 @@ function scheduleBotIfNeeded(io, room) {
 
   if (!current || !current.isBot || room.status !== 'playing' || room.paused) return;
 
-  setTimeout(() => botTakeTurn(io, room, current), 350);
+  setTimeout(() => botTakeTurn(io, room, current), getBotDelay(room));
 }
 
 function joinRoom(io, socket, { code, name }) {
@@ -1183,10 +1232,6 @@ export function registerGameSockets(io) {
     socket.on('approveNextRound', (_payload, callback) => {
       const result = approveNextRound(io, socket);
       callback?.(result);
-    });
-
-    socket.on('drawCard', (payload) => {
-      drawCard(io, socket, payload?.source || 'deck');
     });
 
     socket.on('discardCard', (payload) => {
