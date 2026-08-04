@@ -1131,3 +1131,71 @@ button.how-to-button:hover {
     min-height: 138px;
   }
 }
+
+/* Styled secondary/navigation buttons */
+
+.secondary-button {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 88% 15%, rgba(242, 184, 75, 0.18), transparent 32%),
+    linear-gradient(145deg, #ffffff, #e8f4ef);
+  color: #0a5b3d;
+  font-weight: 900;
+  font-size: 16px;
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 2px rgba(8, 163, 106, 0.16);
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease,
+    background 0.14s ease;
+}
+
+.secondary-button:hover {
+  transform: translateY(-2px);
+  background:
+    radial-gradient(circle at 88% 15%, rgba(242, 184, 75, 0.24), transparent 32%),
+    linear-gradient(145deg, #ffffff, #ddf1e8);
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.17),
+    inset 0 0 0 2px rgba(8, 163, 106, 0.32);
+}
+
+.link-button {
+  width: min(320px, 100%);
+  min-height: 46px;
+  margin: 14px auto 0;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  color: #0a5b3d;
+  font-weight: 900;
+  font-size: 15px;
+  text-decoration: none;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 2px rgba(8, 163, 106, 0.12);
+  transition:
+    transform 0.14s ease,
+    background 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.link-button:hover {
+  transform: translateY(-2px);
+  background: #fff1cc;
+  color: #5b3a00;
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.13),
+    inset 0 0 0 2px rgba(242, 184, 75, 0.42);
+}
+
+.link-button:active,
+.secondary-button:active {
+  transform: translateY(0);
+}
