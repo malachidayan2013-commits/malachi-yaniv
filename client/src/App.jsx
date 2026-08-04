@@ -274,11 +274,73 @@ function App() {
             </button>
           </div>
 
+          <button
+            className="how-to-button"
+            onClick={() => setScreen('howToPlay')}
+          >
+            איך משחקים?
+          </button>
+
+          <button className="link-button" onClick={() => setScreen('login')}>
+            שנה שם
+          </button>
+
           <button className="link-button" onClick={() => setScreen('login')}>
             שנה שם
           </button>
 
           {error && <p className="error-text">{error}</p>}
+        </section>
+      </main>
+    );
+  }
+
+  if (screen === 'howToPlay') {
+    return (
+      <main className="app-shell center-screen">
+        <section className="panel how-to-panel">
+          <h1>איך משחקים יניב?</h1>
+
+          <div className="how-to-content">
+            <p>
+              יניב הוא משחק קלפים שבו המטרה היא להישאר עם כמה שפחות נקודות ביד.
+              באתר אפשר לשחק יניב אונליין נגד בוטים או לפתוח חדר פרטי ולשחק נגד חברים.
+            </p>
+
+            <h2>מה עושים בכל תור?</h2>
+            <p>
+              בכל תור קודם זורקים קלף אחד, כמה קלפים מאותו מספר, או רצף חוקי מאותה צורה.
+              אחרי הזריקה לוקחים קלף חדש מהקופה המוסתרת או מהקלף הגלוי.
+            </p>
+
+            <h2>מתי אומרים יניב?</h2>
+            <p>
+              כאשר סכום הקלפים ביד שווה לסף יניב או נמוך ממנו, אפשר ללחוץ על
+              הכפתור “הגד יניב”. ברירת המחדל באתר היא סף 7.
+            </p>
+
+            <h2>מה זה אסף?</h2>
+            <p>
+              אם שחקן אמר יניב, אבל לשחקן אחר יש סכום קלפים נמוך יותר או שווה לו,
+              המערכת מזהה אסף באופן אוטומטי ומחשבת את הניקוד.
+            </p>
+
+            <h2>איך מנצחים?</h2>
+            <p>
+              אחרי כל סבב מתווסף ניקוד לשחקנים. מי שעובר את ניקוד ההדחה מודח.
+              השחקן האחרון שנשאר במשחק הוא המנצח.
+            </p>
+
+            <h2>מהי הדבקה?</h2>
+            <p>
+              אם זרקת קלף מסוים ולקחת מהקופה המוסתרת קלף עם אותו ערך, יש לך
+              3 שניות להדביק את הקלף החדש לערימה ולהיפטר ממנו.
+            </p>
+          </div>
+
+          <button className="primary-button" onClick={() => setScreen('menu')}>
+            חזרה לתפריט
+          </button>
         </section>
       </main>
     );
