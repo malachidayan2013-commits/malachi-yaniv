@@ -547,4 +547,29 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
   );
 }
 
+function PlayerAvatarDisplay({
+  player,
+  isCurrentTurn,
+  isEliminated,
+  isRoundWinner
+}) {
+  const avatarData = player.avatarData || player.avatar || { ...DEFAULT_AVATAR };
+
+  return (
+    <div
+      className={[
+        'player-avatar-box',
+        isCurrentTurn ? 'current-turn' : '',
+        isEliminated ? 'eliminated' : '',
+        isRoundWinner ? 'round-winner' : ''
+      ].join(' ')}
+    >
+      {isRoundWinner && <div className="avatar-badge crown-badge">👑</div>}
+      {isCurrentTurn && <div className="avatar-badge turn-badge">תור</div>}
+
+      <Avatar avatar={avatarData} size="small" />
+    </div>
+  );
+}
+
 export default Avatar;

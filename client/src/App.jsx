@@ -113,6 +113,40 @@ function isLegalDiscardSelection(cards = []) {
   return canCompleteSequence(cards);
 }
 
+function getRoundWinnerId(roundSummary) {
+  if (!roundSummary) return null;
+
+  if (roundSummary.isAsaf) {
+    return roundSummary.players?.find((player) => player.isAsaf)?.id || null;
+  }
+
+  return roundSummary.declarerId || null;
+}
+
+function AvatarStatusBox({ player, isCurrentTurn, isRoundWinner }) {
+  if (!player) return null;
+
+  const isEliminated = !player.active;
+
+  return (
+    <div
+      className={[
+        'player-avatar-box',
+        isCurrentTurn ? 'current-turn' : '',
+        isRoundWinner ? 'round-winner' : '',
+        isEliminated ? 'avatar-eliminated' : ''
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {isRoundWinner && <span className="avatar-badge crown-badge">👑</span>}
+      {isCurrentTurn && <span className="avatar-badge turn-badge">תור</span>}
+
+      <Avatar avatar={player.avatar} size="seat" />
+    </div>
+  );
+}
+
 function App() {
   const pathJoinCode = window.location.pathname.match(/^\/game\/([^/]+)/i)?.[1]?.toUpperCase() || '';
 
@@ -616,19 +650,19 @@ function HowToPlayScreen({ onBack }) {
       id: 'asaf',
       icon: '⚠️',
       title: 'מה זה אסף?',
-      text: 'אם שחקן אמר יניב, אבל לשחקן אחד או יותר יש סכום קלפים נמוך יותר או שווה לו, המערכת מזהה אסף. מי שאמר יניב מקבל את סכום הקלפים שבידו ועוד 30 נקודות על כל שחקן שעשה עליו אסף. אם שני שחקנים עשו עליו אסף — העונש הוא 60 נקודות, ואם שלושה — 90 נקודות.'
+      text: 'אם שחקן אמר יניב, אבל לשחקן אחד או יותר יש סכום קלפים נמוך יותר או שווה לו, המערכת מזהה אסף. מי שאמר יניב מקבל את סכום הקלפים שבידו ועוד 30 נקודות על כל שחקן שעשה עליו אסף.'
     },
     {
       id: 'score',
       icon: '➕',
       title: 'על מה מוסיפים נקודות?',
-      text: 'בסוף סבב רגיל שבו מישהו אמר יניב והצליח, כל שאר השחקנים מקבלים לניקוד הכללי שלהם את סכום הקלפים שנשארו בידם. מי שאמר יניב לא מקבל נקודות באותו סבב. אם היה אסף, מי שאמר יניב מקבל את סכום הקלפים שבידו ועוד 30 נקודות על כל אסף שעשו עליו. כל שאר השחקנים, כולל מי שעשה אסף, עדיין מקבלים את סכום הקלפים שנשארו בידם.'
+      text: 'בסוף סבב רגיל שבו מישהו אמר יניב והצליח, כל שאר השחקנים מקבלים לניקוד הכללי שלהם את סכום הקלפים שנשארו בידם. מי שאמר יניב לא מקבל נקודות באותו סבב. אם היה אסף, מי שאמר יניב מקבל את סכום הקלפים שבידו ועוד 30 נקודות על כל אסף שעשו עליו.'
     },
     {
       id: 'paste',
       icon: '⚡',
       title: 'מהי הדבקה?',
-      text: 'אם זרקת קלף או קבוצה ולקחת מהקופה המוסתרת קלף רגיל עם המספר המתאים, יש לך 3 שניות להדביק אותו לערימה ולהיפטר ממנו. בסט של אותו מספר — ההדבקה היא לאותו מספר. ברצף — ההדבקה היא רק למספר העליון ברצף. לדוגמה: אם זרקת 4 לב, 5 לב, 6 לב ולקחת 6 מכל צורה, אפשר להדביק. אם לקחת ג׳וקר — לא נפתחת הדבקה.'
+      text: 'אם זרקת קלף או קבוצה ולקחת מהקופה המוסתרת קלף רגיל עם המספר המתאים, יש לך 3 שניות להדביק אותו לערימה ולהיפטר ממנו.'
     },
     {
       id: 'joker',
@@ -745,6 +779,8 @@ function GameScreen({
       </main>
     );
   }
+
+  const roundWinnerId = getRoundWinnerId(room.roundSummary);
 
   const me = room.players.find((player) => player.id === mySocketId) || room.players[0];
 
@@ -953,9 +989,26 @@ function GameScreen({
 
       {room.status !== 'lobby' && (
         <section className="game-table">
-          <PlayerSeat player={topPlayer} position="top-seat" isCurrentTurn={room.currentTurn === topPlayer?.id} />
-          <PlayerSeat player={rightPlayer} position="right-seat" isCurrentTurn={room.currentTurn === rightPlayer?.id} />
-          <PlayerSeat player={leftPlayer} position="left-seat" isCurrentTurn={room.currentTurn === leftPlayer?.id} />
+          <PlayerSeat
+            player={topPlayer}
+            position="top-seat"
+            isCurrentTurn={room.currentTurn === topPlayer?.id}
+            isRoundWinner={roundWinnerId === topPlayer?.id}
+          />
+
+          <PlayerSeat
+            player={rightPlayer}
+            position="right-seat"
+            isCurrentTurn={room.currentTurn === rightPlayer?.id}
+            isRoundWinner={roundWinnerId === rightPlayer?.id}
+          />
+
+          <PlayerSeat
+            player={leftPlayer}
+            position="left-seat"
+            isCurrentTurn={room.currentTurn === leftPlayer?.id}
+            isRoundWinner={roundWinnerId === leftPlayer?.id}
+          />
 
           <div className="center-piles">
             <div className={`pile-block ${canPlayToPile ? 'clickable-pile' : ''}`}>
@@ -975,7 +1028,12 @@ function GameScreen({
 
           <div className={`my-area ${room.isMyTurn ? 'active-turn' : ''}`}>
             <div className="my-info-row">
-              <Avatar avatar={me?.avatar} size="seat" />
+              <AvatarStatusBox
+                player={me}
+                isCurrentTurn={room.currentTurn === me?.id}
+                isRoundWinner={roundWinnerId === me?.id}
+              />
+
               <strong>{me?.name}</strong>
               <span>ניקוד: {me?.score}</span>
               <span>סכום יד: {room.myHandValue ?? '-'}</span>

@@ -23,7 +23,6 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
   const [localActiveId, setLocalActiveId] = useState(activeAvatarId || '');
 
   const safeAvatars = localAvatars;
-
   const activeAvatar = safeAvatars.find((item) => item.id === localActiveId) || safeAvatars[0];
 
   const [selectedId, setSelectedId] = useState(activeAvatar?.id || null);
@@ -57,12 +56,7 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
 
     if (selectedId && safeAvatars.some((item) => item.id === selectedId)) {
       const nextAvatars = safeAvatars.map((item) =>
-        item.id === selectedId
-          ? {
-              ...item,
-              data: nextDraft
-            }
-          : item
+        item.id === selectedId ? { ...item, data: nextDraft } : item
       );
 
       persist(nextAvatars, localActiveId);
@@ -74,12 +68,7 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
 
     if (selectedId && safeAvatars.some((item) => item.id === selectedId)) {
       const nextAvatars = safeAvatars.map((item) =>
-        item.id === selectedId
-          ? {
-              ...item,
-              name: value.trim() || item.name
-            }
-          : item
+        item.id === selectedId ? { ...item, name: value.trim() || item.name } : item
       );
 
       persist(nextAvatars, localActiveId);
@@ -98,13 +87,7 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
 
     if (selectedId && safeAvatars.some((item) => item.id === selectedId)) {
       const nextAvatars = safeAvatars.map((item) =>
-        item.id === selectedId
-          ? {
-              ...item,
-              name: cleanName,
-              data: draft
-            }
-          : item
+        item.id === selectedId ? { ...item, name: cleanName, data: draft } : item
       );
 
       persist(nextAvatars, selectedId);
@@ -112,26 +95,6 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
     }
 
     const id = makeId();
-
-    const nextAvatars = [
-      ...safeAvatars,
-      {
-        id,
-        name: cleanName,
-        data: { ...draft }
-      }
-    ];
-
-    setSelectedId(id);
-    setDraftName(cleanName);
-    setDraft({ ...draft });
-
-    persist(nextAvatars, id);
-  }
-
-  function saveAsNew() {
-    const id = makeId();
-    const cleanName = draftName.trim() || getNextAvatarName(safeAvatars);
 
     const nextAvatars = [
       ...safeAvatars,
@@ -176,12 +139,7 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
 
     if (selectedId && safeAvatars.some((item) => item.id === selectedId)) {
       const nextAvatars = safeAvatars.map((item) =>
-        item.id === selectedId
-          ? {
-              ...item,
-              data: nextDraft
-            }
-          : item
+        item.id === selectedId ? { ...item, data: nextDraft } : item
       );
 
       persist(nextAvatars, localActiveId);
@@ -241,10 +199,6 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
             <div className="avatar-actions">
               <button type="button" className="primary-button" onClick={saveAvatar}>
                 שמור אווטאר
-              </button>
-
-              <button type="button" className="secondary-button" onClick={saveAsNew}>
-                שמור כחדש
               </button>
 
               <button type="button" className="secondary-button" onClick={randomize}>
