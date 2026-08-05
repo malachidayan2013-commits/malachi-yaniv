@@ -30,9 +30,7 @@ export const AVATAR_OPTIONS = {
   ],
   hair: [
     ['none', 'בלי שיער'],
-    ['buzz', 'קצוץ'],
     ['short', 'קצר'],
-    ['sidePart', 'שביל בצד'],
     ['spiky', 'קוצים'],
     ['curly', 'מתולתל'],
     ['afro', 'אפרו'],
@@ -251,14 +249,6 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
         </g>
 
         {/* Hair on top/front */}
-        {data.hair === 'buzz' && (
-          <path
-            d="M31 38 C36 27, 64 27, 69 38 C58 34, 42 34, 31 38 Z"
-            fill={data.hairColor}
-            opacity="0.92"
-          />
-        )}
-
         {data.hair === 'short' && (
           <path
             d="M29 39 C33 25, 67 25, 71 39 C62 34, 56 32, 50 32 C44 32, 38 34, 29 39 Z"
@@ -267,37 +257,47 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
           />
         )}
 
-        {data.hair === 'sidePart' && (
+        {data.hair === 'spiky' && (
           <g filter="url(#avatarSoftShadow)">
             <path
-              d="M29 39 C32 25, 67 23, 72 38 C62 34, 54 32, 46 33 C38 34, 33 36, 29 39 Z"
+              d="M28 40
+                 C30 31, 34 27, 39 25
+                 C40 30, 41 34, 43 37
+                 C45 30, 47 24, 50 20
+                 C53 25, 55 31, 57 37
+                 C60 33, 64 28, 69 25
+                 C69 31, 70 36, 72 40
+                 C61 34, 39 34, 28 40 Z"
               fill={data.hairColor}
             />
+
             <path
-              d="M45 28 C48 34, 47 38, 44 42"
+              d="M34 36 C39 31, 44 30, 50 31 C56 30, 62 31, 68 36"
               fill="none"
               stroke="#ffffff"
-              strokeOpacity="0.28"
+              strokeOpacity="0.16"
               strokeWidth="3"
               strokeLinecap="round"
             />
+
             <path
-              d="M46 31 C54 28, 63 29, 70 36"
+              d="M39 25 C41 30, 42 34, 43 37"
               fill="none"
               stroke="#000000"
-              strokeOpacity="0.18"
-              strokeWidth="4"
+              strokeOpacity="0.12"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+
+            <path
+              d="M57 37 C60 33, 64 28, 69 25"
+              fill="none"
+              stroke="#000000"
+              strokeOpacity="0.12"
+              strokeWidth="2"
               strokeLinecap="round"
             />
           </g>
-        )}
-
-        {data.hair === 'spiky' && (
-          <path
-            d="M29 39 L34 25 L40 36 L46 22 L51 36 L57 22 L63 36 L69 25 L72 39 C60 33, 42 33, 29 39 Z"
-            fill={data.hairColor}
-            filter="url(#avatarSoftShadow)"
-          />
         )}
 
         {data.hair === 'curly' && (
