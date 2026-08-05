@@ -22,14 +22,12 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
   const [localAvatars, setLocalAvatars] = useState(() => (avatars?.length ? avatars : []));
   const [localActiveId, setLocalActiveId] = useState(activeAvatarId || '');
 
-  const safeAvatars = localAvatars;
-  const activeAvatar = safeAvatars.find((item) => item.id === localActiveId) || safeAvatars[0];
+  const [mode, setMode] = useState('gallery');
+  const [selectedId, setSelectedId] = useState(null);
+  const selectedAvatar = localAvatars.find((item) => item.id === selectedId);
 
-  const [selectedId, setSelectedId] = useState(activeAvatar?.id || null);
-  const selectedAvatar = safeAvatars.find((item) => item.id === selectedId);
-
-  const [draftName, setDraftName] = useState(selectedAvatar?.name || 'האוואטר שלי');
-  const [draft, setDraft] = useState(selectedAvatar?.data || { ...DEFAULT_AVATAR });
+  const [draftName, setDraftName] = useState('האוואטר שלי');
+  const [draft, setDraft] = useState({ ...DEFAULT_AVATAR });
 
   useEffect(() => {
     setLocalAvatars(avatars?.length ? avatars : []);
@@ -44,18 +42,47 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
     return 'אווטאר חדש';
   }, [selectedAvatar]);
 
-  function persist(nextAvatars, nextActiveId) {
+  function persist(nextAvatars, nextActiveId = localActiveId) {
     setLocalAvatars(nextAvatars);
     setLocalActiveId(nextActiveId || '');
     onSaveAll(nextAvatars, nextActiveId || '');
+  }
+
+  function openEditor(item) {
+    setSelectedId(item.id);
+    setDraftName(item.name);
+    setDraft({ ...DEFAULT_AVATAR, ...item.data });
+    setMode('editor');
+  }
+
+  function createNewAvatar() {
+    const id = makeId();
+    const name = getNextAvatarName(localAvatars);
+    const data = { ...DEFAULT_AVATAR };
+
+    const nextAvatars = [
+      ...localAvatars,
+      {
+        id,
+        name,
+        data
+      }
+    ];
+
+    persist(nextAvatars, id);
+
+    setSelectedId(id);
+    setDraftName(name);
+    setDraft(data);
+    setMode('editor');
   }
 
   function updateDraft(key, value) {
     const nextDraft = { ...draft, [key]: value };
     setDraft(nextDraft);
 
-    if (selectedId && safeAvatars.some((item) => item.id === selectedId)) {
-      const nextAvatars = safeAvatars.map((item) =>
+    if (selectedId) {
+      const nextAvatars = localAvatars.map((item) =>
         item.id === selectedId ? { ...item, data: nextDraft } : item
       );
 
@@ -66,8 +93,8 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
   function updateDraftName(value) {
     setDraftName(value);
 
-    if (selectedId && safeAvatars.some((item) => item.id === selectedId)) {
-      const nextAvatars = safeAvatars.map((item) =>
+    if (selectedId) {
+      const nextAvatars = localAvatars.map((item) =>
         item.id === selectedId ? { ...item, name: value.trim() || item.name } : item
       );
 
@@ -75,70 +102,36 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
     }
   }
 
-  function chooseAvatar(item) {
-    setSelectedId(item.id);
-    setDraftName(item.name);
-    setDraft(item.data);
-    persist(safeAvatars, item.id);
-  }
-
   function saveAvatar() {
     const cleanName = draftName.trim() || 'האוואטר שלי';
 
-    if (selectedId && safeAvatars.some((item) => item.id === selectedId)) {
-      const nextAvatars = safeAvatars.map((item) =>
-        item.id === selectedId ? { ...item, name: cleanName, data: draft } : item
-      );
+    if (!selectedId) return;
 
-      persist(nextAvatars, selectedId);
-      return;
-    }
+    const nextAvatars = localAvatars.map((item) =>
+      item.id === selectedId
+        ? {
+            ...item,
+            name: cleanName,
+            data: { ...draft }
+          }
+        : item
+    );
 
-    const id = makeId();
-
-    const nextAvatars = [
-      ...safeAvatars,
-      {
-        id,
-        name: cleanName,
-        data: { ...draft }
-      }
-    ];
-
-    setSelectedId(id);
     setDraftName(cleanName);
-    setDraft({ ...draft });
-
-    persist(nextAvatars, id);
+    persist(nextAvatars, selectedId);
   }
 
-  function createNew() {
-    const id = makeId();
-    const name = getNextAvatarName(safeAvatars);
-    const data = { ...DEFAULT_AVATAR };
-
-    const nextAvatars = [
-      ...safeAvatars,
-      {
-        id,
-        name,
-        data
-      }
-    ];
-
-    setSelectedId(id);
-    setDraftName(name);
-    setDraft(data);
-
-    persist(nextAvatars, id);
+  function chooseAvatar() {
+    if (!selectedId) return;
+    persist(localAvatars, selectedId);
   }
 
   function randomize() {
     const nextDraft = createRandomAvatar();
     setDraft(nextDraft);
 
-    if (selectedId && safeAvatars.some((item) => item.id === selectedId)) {
-      const nextAvatars = safeAvatars.map((item) =>
+    if (selectedId) {
+      const nextAvatars = localAvatars.map((item) =>
         item.id === selectedId ? { ...item, data: nextDraft } : item
       );
 
@@ -151,7 +144,7 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
     const name = `${draftName || selectedTitle} - עותק`;
 
     const nextAvatars = [
-      ...safeAvatars,
+      ...localAvatars,
       {
         id,
         name,
@@ -159,34 +152,89 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
       }
     ];
 
+    persist(nextAvatars, id);
+
     setSelectedId(id);
     setDraftName(name);
     setDraft({ ...draft });
-
-    persist(nextAvatars, id);
+    setMode('editor');
   }
 
-  function deleteAvatar(id) {
-    const nextAvatars = safeAvatars.filter((item) => item.id !== id);
-    const nextActiveId = localActiveId === id ? nextAvatars[0]?.id || '' : localActiveId;
+  function deleteAvatar() {
+    if (!selectedId) return;
 
-    if (selectedId === id) {
-      const nextSelected = nextAvatars[0] || null;
-
-      setSelectedId(nextSelected?.id || null);
-      setDraftName(nextSelected?.name || 'האוואטר שלי');
-      setDraft(nextSelected?.data || { ...DEFAULT_AVATAR });
-    }
+    const nextAvatars = localAvatars.filter((item) => item.id !== selectedId);
+    const nextActiveId = localActiveId === selectedId ? nextAvatars[0]?.id || '' : localActiveId;
 
     persist(nextAvatars, nextActiveId);
+
+    setSelectedId(null);
+    setDraftName('האוואטר שלי');
+    setDraft({ ...DEFAULT_AVATAR });
+    setMode('gallery');
+  }
+
+  if (mode === 'gallery') {
+    return (
+      <main className="app-shell center-screen">
+        <section className="panel avatar-gallery-panel">
+          <div className="avatar-gallery-header">
+            <h1>האוואטרים שלי</h1>
+            <p>בחר אווטאר לעריכה, או צור אווטאר חדש.</p>
+          </div>
+
+          <div className="avatar-gallery-layout">
+            <div className="avatar-gallery-grid">
+              {localAvatars.length > 0 ? (
+                localAvatars.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={item.id === localActiveId ? 'avatar-gallery-card active' : 'avatar-gallery-card'}
+                    onClick={() => openEditor(item)}
+                  >
+                    <Avatar avatar={item.data} size="large" />
+
+                    <strong>{item.name}</strong>
+
+                    {item.id === localActiveId && <span className="active-avatar-label">נבחר למשחק</span>}
+                  </button>
+                ))
+              ) : (
+                <div className="empty-avatar-gallery">
+                  <strong>אין לך עדיין אווטארים</strong>
+                  <span>לחץ על “צור אווטאר חדש” כדי להתחיל.</span>
+                </div>
+              )}
+            </div>
+
+            <aside className="avatar-gallery-actions">
+              <button type="button" className="primary-button" onClick={createNewAvatar}>
+                צור אווטאר חדש
+              </button>
+
+              <button type="button" className="link-button" onClick={onBack}>
+                חזרה לתפריט
+              </button>
+            </aside>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (
     <main className="app-shell center-screen">
-      <section className="panel avatar-builder-panel">
-        <h1>צור אווטאר</h1>
+      <section className="panel avatar-editor-panel">
+        <div className="avatar-editor-header">
+          <button type="button" className="small-button" onClick={() => setMode('gallery')}>
+            חזרה לאוואטרים שלי
+          </button>
 
-        <div className="avatar-builder-layout">
+          <h1>עריכת אווטאר</h1>
+        </div>
+
+        <div className="avatar-editor-layout">
           <div className="avatar-preview-box">
             <Avatar avatar={draft} size="large" />
 
@@ -197,7 +245,11 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
             />
 
             <div className="avatar-actions">
-              <button type="button" className="primary-button" onClick={saveAvatar}>
+              <button type="button" className="primary-button" onClick={chooseAvatar}>
+                בחר למשחק
+              </button>
+
+              <button type="button" className="secondary-button" onClick={saveAvatar}>
                 שמור אווטאר
               </button>
 
@@ -207,6 +259,15 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
 
               <button type="button" className="link-button" onClick={duplicateAvatar}>
                 שכפל
+              </button>
+
+              <button
+                type="button"
+                className="small-danger-button"
+                onClick={deleteAvatar}
+                disabled={localAvatars.length <= 1}
+              >
+                מחק אווטאר
               </button>
             </div>
           </div>
@@ -227,54 +288,6 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
             ))}
           </div>
         </div>
-
-        <div className="saved-avatars-box">
-          <div className="saved-avatars-title">האוואטרים שלי</div>
-
-          <div className="saved-avatars-grid">
-            {safeAvatars.map((item) => (
-              <div key={item.id} className={item.id === localActiveId ? 'saved-avatar active' : 'saved-avatar'}>
-                <Avatar avatar={item.data} size="small" />
-
-                <strong>{item.name}</strong>
-
-                <button type="button" className="small-primary-button" onClick={() => chooseAvatar(item)}>
-                  בחר
-                </button>
-
-                <button
-                  type="button"
-                  className="small-button"
-                  onClick={() => {
-                    setSelectedId(item.id);
-                    setDraftName(item.name);
-                    setDraft(item.data);
-                  }}
-                >
-                  ערוך
-                </button>
-
-                <button
-                  type="button"
-                  className="small-danger-button"
-                  onClick={() => deleteAvatar(item.id)}
-                  disabled={safeAvatars.length <= 1}
-                >
-                  מחק
-                </button>
-              </div>
-            ))}
-
-            <button type="button" className="saved-avatar create-avatar-card" onClick={createNew}>
-              <span className="create-avatar-plus">+</span>
-              <strong>צור אווטאר חדש</strong>
-            </button>
-          </div>
-        </div>
-
-        <button type="button" className="link-button" onClick={onBack}>
-          חזרה לתפריט
-        </button>
       </section>
     </main>
   );
