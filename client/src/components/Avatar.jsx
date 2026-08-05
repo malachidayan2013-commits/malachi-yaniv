@@ -30,10 +30,14 @@ export const AVATAR_OPTIONS = {
   ],
   hair: [
     ['none', 'בלי שיער'],
+    ['buzz', 'קצוץ'],
     ['short', 'קצר'],
+    ['sidePart', 'שביל בצד'],
     ['spiky', 'קוצים'],
     ['curly', 'מתולתל'],
-    ['long', 'ארוך']
+    ['afro', 'אפרו'],
+    ['long', 'ארוך'],
+    ['ponytail', 'קוקו']
   ],
   hairColor: [
     ['#1d1d1d', 'שחור'],
@@ -203,13 +207,40 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
           </>
         )}
 
-        {/* Long hair behind the face */}
+        {/* Hair behind the face */}
         {data.hair === 'long' && (
           <path
-            d="M27 40 C27 25, 36 18, 50 18 C64 18, 73 25, 73 40 C77 59, 70 78, 61 84 C60 72, 56 66, 50 66 C44 66, 40 72, 39 84 C30 78, 23 59, 27 40 Z"
+            d="M26 42 C25 26, 35 17, 50 17 C65 17, 75 26, 74 42 C79 58, 73 82, 62 88 C61 75, 56 68, 50 68 C44 68, 39 75, 38 88 C27 82, 21 58, 26 42 Z"
             fill={data.hairColor}
             filter="url(#avatarSoftShadow)"
           />
+        )}
+
+        {data.hair === 'ponytail' && (
+          <>
+            <path
+              d="M28 40 C28 25, 37 18, 50 18 C63 18, 72 25, 72 40 C70 55, 62 65, 50 65 C38 65, 30 55, 28 40 Z"
+              fill={data.hairColor}
+              filter="url(#avatarSoftShadow)"
+            />
+            <path
+              d="M68 48 C84 54, 82 77, 67 83 C74 70, 73 59, 64 54 Z"
+              fill={data.hairColor}
+              filter="url(#avatarSoftShadow)"
+            />
+          </>
+        )}
+
+        {data.hair === 'afro' && (
+          <g fill={data.hairColor} filter="url(#avatarSoftShadow)">
+            <circle cx="31" cy="39" r="10" />
+            <circle cx="38" cy="29" r="11" />
+            <circle cx="50" cy="25" r="12" />
+            <circle cx="62" cy="29" r="11" />
+            <circle cx="69" cy="39" r="10" />
+            <circle cx="30" cy="51" r="9" />
+            <circle cx="70" cy="51" r="9" />
+          </g>
         )}
 
         {/* Ears and face */}
@@ -220,17 +251,50 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
         </g>
 
         {/* Hair on top/front */}
+        {data.hair === 'buzz' && (
+          <path
+            d="M31 38 C36 27, 64 27, 69 38 C58 34, 42 34, 31 38 Z"
+            fill={data.hairColor}
+            opacity="0.92"
+          />
+        )}
+
         {data.hair === 'short' && (
           <path
-            d="M30 38 C34 24, 66 24, 70 38 C58 31, 42 31, 30 38 Z"
+            d="M29 39 C33 25, 67 25, 71 39 C62 34, 56 32, 50 32 C44 32, 38 34, 29 39 Z"
             fill={data.hairColor}
             filter="url(#avatarSoftShadow)"
           />
         )}
 
+        {data.hair === 'sidePart' && (
+          <g filter="url(#avatarSoftShadow)">
+            <path
+              d="M29 39 C32 25, 67 23, 72 38 C62 34, 54 32, 46 33 C38 34, 33 36, 29 39 Z"
+              fill={data.hairColor}
+            />
+            <path
+              d="M45 28 C48 34, 47 38, 44 42"
+              fill="none"
+              stroke="#ffffff"
+              strokeOpacity="0.28"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+            <path
+              d="M46 31 C54 28, 63 29, 70 36"
+              fill="none"
+              stroke="#000000"
+              strokeOpacity="0.18"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+          </g>
+        )}
+
         {data.hair === 'spiky' && (
           <path
-            d="M30 38 L36 23 L43 36 L50 21 L57 36 L64 23 L70 38 C58 31, 42 31, 30 38 Z"
+            d="M29 39 L34 25 L40 36 L46 22 L51 36 L57 22 L63 36 L69 25 L72 39 C60 33, 42 33, 29 39 Z"
             fill={data.hairColor}
             filter="url(#avatarSoftShadow)"
           />
@@ -238,11 +302,43 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
 
         {data.hair === 'curly' && (
           <g fill={data.hairColor} filter="url(#avatarSoftShadow)">
-            <circle cx="34" cy="34" r="7" />
-            <circle cx="43" cy="30" r="7" />
-            <circle cx="52" cy="29" r="7" />
-            <circle cx="61" cy="31" r="7" />
-            <circle cx="68" cy="36" r="6" />
+            <circle cx="32" cy="37" r="7" />
+            <circle cx="39" cy="30" r="8" />
+            <circle cx="48" cy="28" r="8" />
+            <circle cx="57" cy="29" r="8" />
+            <circle cx="66" cy="35" r="7" />
+            <circle cx="37" cy="39" r="6" />
+            <circle cx="58" cy="39" r="6" />
+          </g>
+        )}
+
+        {data.hair === 'long' && (
+          <g filter="url(#avatarSoftShadow)">
+            <path
+              d="M30 40 C33 24, 67 24, 70 40 C60 34, 40 34, 30 40 Z"
+              fill={data.hairColor}
+            />
+            <path
+              d="M32 43 C36 36, 44 31, 50 31 C45 38, 39 43, 32 46 Z"
+              fill="#ffffff"
+              opacity="0.14"
+            />
+          </g>
+        )}
+
+        {data.hair === 'ponytail' && (
+          <g filter="url(#avatarSoftShadow)">
+            <path
+              d="M29 39 C33 25, 67 25, 71 39 C62 34, 55 32, 50 32 C43 32, 36 34, 29 39 Z"
+              fill={data.hairColor}
+            />
+            <path
+              d="M63 38 C69 39, 73 44, 73 49"
+              fill="none"
+              stroke={data.hairColor}
+              strokeWidth="7"
+              strokeLinecap="round"
+            />
           </g>
         )}
 
