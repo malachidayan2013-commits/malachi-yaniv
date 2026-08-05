@@ -131,6 +131,28 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
   return (
     <div className={`avatar avatar-${size} ${className}`}>
       <svg viewBox="0 0 100 100" className="avatar-svg" aria-hidden="true">
+        <defs>
+          <filter id="avatarSoftShadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000000" floodOpacity="0.22" />
+          </filter>
+
+          <linearGradient id="avatarGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fff0a8" />
+            <stop offset="45%" stopColor="#f2b84b" />
+            <stop offset="100%" stopColor="#a86800" />
+          </linearGradient>
+
+          <linearGradient id="avatarCapBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#4f8cff" />
+            <stop offset="100%" stopColor="#0f4fc4" />
+          </linearGradient>
+
+          <linearGradient id="avatarBeaniePurple" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#8d5cf6" />
+            <stop offset="100%" stopColor="#4a1f86" />
+          </linearGradient>
+        </defs>
+
         <circle cx="50" cy="50" r="48" fill={data.background} />
         <circle cx="50" cy="50" r="46" fill="none" stroke={data.frame} strokeWidth="4" />
 
@@ -181,26 +203,28 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
           </>
         )}
 
-        {/* Long hair is behind the face */}
+        {/* Long hair behind the face */}
         {data.hair === 'long' && (
           <path
             d="M27 40 C27 25, 36 18, 50 18 C64 18, 73 25, 73 40 C77 59, 70 78, 61 84 C60 72, 56 66, 50 66 C44 66, 40 72, 39 84 C30 78, 23 59, 27 40 Z"
             fill={data.hairColor}
+            filter="url(#avatarSoftShadow)"
           />
         )}
 
-        {/* Face and ears */}
+        {/* Ears and face */}
         <g fill={data.skin}>
           <circle cx="29" cy="50" r="5" />
           <circle cx="71" cy="50" r="5" />
           {getFacePath(data.face)}
         </g>
 
-        {/* Hair in front/top */}
+        {/* Hair on top/front */}
         {data.hair === 'short' && (
           <path
             d="M30 38 C34 24, 66 24, 70 38 C58 31, 42 31, 30 38 Z"
             fill={data.hairColor}
+            filter="url(#avatarSoftShadow)"
           />
         )}
 
@@ -208,11 +232,12 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
           <path
             d="M30 38 L36 23 L43 36 L50 21 L57 36 L64 23 L70 38 C58 31, 42 31, 30 38 Z"
             fill={data.hairColor}
+            filter="url(#avatarSoftShadow)"
           />
         )}
 
         {data.hair === 'curly' && (
-          <g fill={data.hairColor}>
+          <g fill={data.hairColor} filter="url(#avatarSoftShadow)">
             <circle cx="34" cy="34" r="7" />
             <circle cx="43" cy="30" r="7" />
             <circle cx="52" cy="29" r="7" />
@@ -221,33 +246,109 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
           </g>
         )}
 
-        {/* Hats and accessories */}
+        {/* Cap */}
         {data.hat === 'cap' && (
-          <>
-            <path d="M31 34 C37 22, 63 22, 69 34 Z" fill="#1f6feb" />
-            <path d="M66 34 C76 34, 80 38, 70 40" fill="#1f6feb" />
-          </>
+          <g filter="url(#avatarSoftShadow)">
+            <path
+              d="M30 35 C34 22, 64 21, 70 35 C58 31, 42 31, 30 35 Z"
+              fill="url(#avatarCapBlue)"
+              stroke="#0b3a8f"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M62 34 C72 33, 79 36, 83 41 C73 43, 66 40, 61 36 Z"
+              fill="#0f4fc4"
+              stroke="#0b3a8f"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M37 29 C44 25, 56 25, 63 29"
+              fill="none"
+              stroke="#ffffff"
+              strokeOpacity="0.45"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </g>
         )}
 
+        {/* Beanie */}
         {data.hat === 'beanie' && (
-          <path d="M31 35 C35 21, 65 21, 69 35 Z" fill="#5b2a86" />
+          <g filter="url(#avatarSoftShadow)">
+            <path
+              d="M31 35 C34 22, 66 22, 69 35 Z"
+              fill="url(#avatarBeaniePurple)"
+              stroke="#35105f"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            <circle cx="50" cy="22" r="5" fill="#5b2a86" stroke="#35105f" strokeWidth="2" />
+            <path d="M32 35 Q50 39, 68 35" fill="none" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="3" />
+            <path d="M38 27 L38 35" stroke="#ffffff" strokeOpacity="0.25" strokeWidth="2" />
+            <path d="M50 25 L50 36" stroke="#ffffff" strokeOpacity="0.25" strokeWidth="2" />
+            <path d="M62 27 L62 35" stroke="#ffffff" strokeOpacity="0.25" strokeWidth="2" />
+          </g>
         )}
 
+        {/* Crown */}
         {data.hat === 'crown' && (
-          <path
-            d="M31 34 L38 22 L47 33 L56 22 L65 34 Z"
-            fill="#f2b84b"
-            stroke="#7a4a00"
-            strokeWidth="2"
-          />
+          <g filter="url(#avatarSoftShadow)">
+            <path
+              d="M30 37 L35 23 L44 33 L50 19 L56 33 L65 23 L70 37 Z"
+              fill="url(#avatarGold)"
+              stroke="#7a4a00"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+
+            <path
+              d="M31 37 Q50 42, 69 37 L67 44 Q50 49, 33 44 Z"
+              fill="url(#avatarGold)"
+              stroke="#7a4a00"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+
+            <circle cx="35" cy="23" r="3" fill="#fff4b8" stroke="#7a4a00" strokeWidth="1.5" />
+            <circle cx="50" cy="19" r="3.5" fill="#fff4b8" stroke="#7a4a00" strokeWidth="1.5" />
+            <circle cx="65" cy="23" r="3" fill="#fff4b8" stroke="#7a4a00" strokeWidth="1.5" />
+
+            <circle cx="42" cy="39" r="2.4" fill="#5b2a86" />
+            <circle cx="50" cy="41" r="2.4" fill="#d92d20" />
+            <circle cx="58" cy="39" r="2.4" fill="#1f6feb" />
+          </g>
         )}
 
+        {/* Headphones */}
         {data.hat === 'headphones' && (
-          <>
-            <path d="M28 49 C28 28, 72 28, 72 49" fill="none" stroke="#111827" strokeWidth="5" />
-            <rect x="20" y="47" width="10" height="18" rx="4" fill="#111827" />
-            <rect x="70" y="47" width="10" height="18" rx="4" fill="#111827" />
-          </>
+          <g filter="url(#avatarSoftShadow)">
+            <path
+              d="M26 52 C26 27, 74 27, 74 52"
+              fill="none"
+              stroke="#111827"
+              strokeWidth="6"
+              strokeLinecap="round"
+            />
+            <path
+              d="M30 51 C30 33, 70 33, 70 51"
+              fill="none"
+              stroke="#ffffff"
+              strokeOpacity="0.35"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+
+            <rect x="19" y="46" width="13" height="22" rx="6" fill="#111827" />
+            <rect x="68" y="46" width="13" height="22" rx="6" fill="#111827" />
+
+            <rect x="22" y="50" width="7" height="14" rx="3" fill="#2f3a4d" />
+            <rect x="71" y="50" width="7" height="14" rx="3" fill="#2f3a4d" />
+
+            <circle cx="25.5" cy="57" r="2" fill="#1f6feb" />
+            <circle cx="74.5" cy="57" r="2" fill="#1f6feb" />
+          </g>
         )}
 
         {/* Eyes */}
@@ -282,24 +383,33 @@ function Avatar({ avatar = DEFAULT_AVATAR, size = 'medium', className = '' }) {
         </g>
 
         {/* Glasses */}
-        {data.glasses !== 'none' && (
-          <g
-            fill={data.glasses === 'sun' ? '#111827' : 'none'}
-            stroke={data.glasses === 'sun' ? '#111827' : '#0a5b3d'}
-            strokeWidth="3"
-          >
-            {data.glasses === 'square' ? (
-              <>
-                <rect x="35" y="43" width="13" height="12" rx="3" />
-                <rect x="52" y="43" width="13" height="12" rx="3" />
-              </>
-            ) : (
-              <>
-                <circle cx="42" cy="49" r="7" />
-                <circle cx="58" cy="49" r="7" />
-              </>
-            )}
+        {data.glasses === 'round' && (
+          <g fill="none" stroke="#0a5b3d" strokeWidth="3" filter="url(#avatarSoftShadow)">
+            <circle cx="42" cy="49" r="7" />
+            <circle cx="58" cy="49" r="7" />
             <path d="M49 49 L51 49" />
+            <path d="M35 48 L31 46" />
+            <path d="M65 48 L69 46" />
+          </g>
+        )}
+
+        {data.glasses === 'square' && (
+          <g fill="none" stroke="#0a5b3d" strokeWidth="3" filter="url(#avatarSoftShadow)">
+            <rect x="34" y="43" width="15" height="12" rx="3" />
+            <rect x="51" y="43" width="15" height="12" rx="3" />
+            <path d="M49 49 L51 49" />
+            <path d="M34 47 L30 45" />
+            <path d="M66 47 L70 45" />
+          </g>
+        )}
+
+        {data.glasses === 'sun' && (
+          <g filter="url(#avatarSoftShadow)">
+            <rect x="34" y="43" width="15" height="12" rx="4" fill="#111827" />
+            <rect x="51" y="43" width="15" height="12" rx="4" fill="#111827" />
+            <path d="M49 49 L51 49" stroke="#111827" strokeWidth="3" strokeLinecap="round" />
+            <path d="M38 46 L45 46" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="2" strokeLinecap="round" />
+            <path d="M55 46 L62 46" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="2" strokeLinecap="round" />
           </g>
         )}
 
