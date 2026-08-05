@@ -925,7 +925,10 @@ function GameScreen({
 
       {room.roundSummary && (
         <section className="round-summary">
-          <strong>{room.roundSummary.title}</strong>
+          <div className="round-summary-header">
+            <strong className="round-summary-title">{room.roundSummary.title}</strong>
+            <span className="round-summary-subtitle">סיכום תוצאות הסבב האחרון</span>
+          </div>
 
           {room.roundSummary.eliminatedPlayers?.length > 0 && (
             <div className="elimination-banners">
@@ -937,15 +940,62 @@ function GameScreen({
             </div>
           )}
 
-          <div className="summary-grid">
-            {room.roundSummary.players.map((player) => (
-              <div key={player.id} className={player.isAsaf ? 'summary-card asaf-summary' : 'summary-card'}>
-                <span>{player.name}</span>
-                <span>יד: {player.handValue}</span>
-                <span>נוסף: {player.scoreAdded ?? 0}</span>
-                <span>סה״כ: {player.score}</span>
-              </div>
-            ))}
+          <div className="summary-grid summary-grid-beautiful">
+            {room.roundSummary.players.map((player) => {
+              const sourcePlayer = room.players.find((p) => p.id === player.id);
+              const avatarData = player.avatar || sourcePlayer?.avatar || null;
+
+              const isWinner = roundWinnerId === player.id;
+              const isDeclarer = room.roundSummary.declarerId === player.id;
+
+              return (
+                <div
+                  key={player.id}
+                  className={[
+                    'summary-card',
+                    'beautiful-summary-card',
+                    player.isAsaf ? 'asaf-summary' : '',
+                    isWinner ? 'winner-summary' : '',
+                    isDeclarer ? 'declarer-summary' : ''
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <div className="summary-card-top">
+                    <div className="summary-avatar-wrap">
+                      <Avatar avatar={avatarData} size="small" />
+                    </div>
+
+                    <div className="summary-player-meta">
+                      <strong className="summary-player-name">{player.name}</strong>
+
+                      <div className="summary-badges">
+                        {isDeclarer && <span className="summary-badge yaniv-badge">יניב</span>}
+                        {player.isAsaf && <span className="summary-badge asaf-badge">אסף</span>}
+                        {isWinner && <span className="summary-badge winner-badge">מנצח הסבב</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="summary-stats">
+                    <div className="summary-stat-row">
+                      <span className="summary-stat-label">סכום ביד</span>
+                      <span className="summary-stat-value">{player.handValue}</span>
+                    </div>
+
+                    <div className="summary-stat-row">
+                      <span className="summary-stat-label">נוסף לניקוד</span>
+                      <span className="summary-stat-value">{player.scoreAdded ?? 0}</span>
+                    </div>
+
+                    <div className="summary-stat-row total-row">
+                      <span className="summary-stat-label">סה״כ ניקוד</span>
+                      <span className="summary-stat-value">{player.score}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {room.status === 'roundEnded' && nextRoundApproval && (
@@ -970,7 +1020,6 @@ function GameScreen({
           )}
         </section>
       )}
-
       {room.status === 'finished' && room.finalRanking?.length > 0 && (
         <section className="final-ranking">
           <h2>דירוג סופי</h2>

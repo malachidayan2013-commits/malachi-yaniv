@@ -1457,3 +1457,216 @@ button.how-to-button:hover {
 .player-seat.eliminated .seat-score {
   opacity: 0.68;
 }
+
+/* Round summary upgrade */
+
+.round-summary {
+  margin: 14px auto;
+  padding: 18px 20px;
+  width: min(1100px, calc(100% - 24px));
+  background: linear-gradient(180deg, rgba(255, 252, 243, 0.98) 0%, rgba(255, 247, 228, 0.96) 100%);
+  border: 2px solid rgba(242, 184, 75, 0.55);
+  border-radius: 24px;
+  box-shadow:
+    0 16px 38px rgba(28, 45, 28, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.round-summary-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.round-summary-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #23452f;
+}
+
+.round-summary-subtitle {
+  font-size: 0.95rem;
+  color: #5a6e63;
+}
+
+.summary-grid-beautiful {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.beautiful-summary-card {
+  position: relative;
+  background: linear-gradient(180deg, #ffffff 0%, #fff7e7 100%);
+  border: 2px solid rgba(223, 203, 154, 0.85);
+  border-radius: 20px;
+  padding: 14px 12px 12px;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.beautiful-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.summary-card-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.summary-avatar-wrap {
+  display: inline-grid;
+  place-items: center;
+  padding: 4px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 35%, rgba(255, 249, 223, 0.95), rgba(255, 236, 189, 0.8));
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.summary-player-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.summary-player-name {
+  font-size: 1.02rem;
+  color: #1f3b2c;
+  font-weight: 900;
+}
+
+.summary-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.summary-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.yaniv-badge {
+  background: linear-gradient(180deg, #dff7e5 0%, #bde9c9 100%);
+  color: #1f6b36;
+  border: 1px solid rgba(41, 139, 70, 0.22);
+}
+
+.asaf-badge {
+  background: linear-gradient(180deg, #ffe6e6 0%, #ffc7c7 100%);
+  color: #a12f2f;
+  border: 1px solid rgba(161, 47, 47, 0.22);
+}
+
+.winner-badge {
+  background: linear-gradient(180deg, #fff1b8 0%, #f2d15b 100%);
+  color: #6a4d00;
+  border: 1px solid rgba(166, 122, 0, 0.22);
+}
+
+.summary-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(230, 218, 185, 0.9);
+}
+
+.summary-stat-label {
+  font-size: 0.88rem;
+  color: #58675d;
+  font-weight: 700;
+}
+
+.summary-stat-value {
+  font-size: 1rem;
+  color: #1d3727;
+  font-weight: 900;
+}
+
+.total-row {
+  background: linear-gradient(180deg, rgba(255, 247, 221, 0.95) 0%, rgba(255, 235, 184, 0.86) 100%);
+  border-color: rgba(242, 184, 75, 0.6);
+}
+
+.winner-summary {
+  border-color: rgba(242, 184, 75, 0.95);
+  box-shadow:
+    0 0 0 2px rgba(242, 184, 75, 0.26),
+    0 14px 28px rgba(242, 184, 75, 0.18);
+}
+
+.asaf-summary {
+  border-color: rgba(209, 87, 87, 0.65);
+}
+
+.declarer-summary {
+  border-style: solid;
+}
+
+@media (max-width: 700px) {
+  .round-summary {
+    padding: 14px 12px;
+    border-radius: 18px;
+  }
+
+  .summary-grid-beautiful {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .beautiful-summary-card {
+    padding: 12px 10px;
+  }
+
+  .summary-player-name {
+    font-size: 0.96rem;
+  }
+
+  .summary-stat-label,
+  .summary-stat-value {
+    font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .summary-grid-beautiful {
+    grid-template-columns: 1fr;
+  }
+}
