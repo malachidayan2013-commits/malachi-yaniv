@@ -5,6 +5,19 @@ function makeId() {
   return `avatar-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function getNextAvatarName(avatars) {
+  const existingNames = new Set((avatars || []).map((item) => item.name));
+  let number = (avatars?.length || 0) + 1;
+  let name = `אווטאר ${number}`;
+
+  while (existingNames.has(name)) {
+    number += 1;
+    name = `אווטאר ${number}`;
+  }
+
+  return name;
+}
+
 function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
   const safeAvatars = avatars?.length ? avatars : [];
   const activeAvatar = safeAvatars.find((item) => item.id === activeAvatarId) || safeAvatars[0];
@@ -13,7 +26,7 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
   const selectedAvatar = safeAvatars.find((item) => item.id === selectedId);
 
   const [draftName, setDraftName] = useState(selectedAvatar?.name || 'האוואטר שלי');
-  const [draft, setDraft] = useState(selectedAvatar?.data || DEFAULT_AVATAR);
+  const [draft, setDraft] = useState(selectedAvatar?.data || { ...DEFAULT_AVATAR });
 
   const selectedTitle = useMemo(() => {
     if (selectedAvatar) return selectedAvatar.name;
@@ -40,7 +53,13 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
 
     if (selectedId && safeAvatars.some((item) => item.id === selectedId)) {
       const next = safeAvatars.map((item) =>
-        item.id === selectedId ? { ...item, name: cleanName, data: draft } : item
+        item.id === selectedId
+          ? {
+              ...item,
+              name: cleanName,
+              data: draft
+            }
+          : item
       );
 
       persist(next, selectedId);
@@ -48,37 +67,11 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
     }
 
     const id = makeId();
-    const next = [...safeAvatars, { id, name: cleanName, data: draft }];
-    setSelectedId(id);
-    persist(next, id);
-  }
-
-  function saveAsNew() {
-    const id = makeId();
-    const cleanName = draftName.trim() || `אווטאר ${safeAvatars.length + 1}`;
-    const next = [...safeAvatars, { id, name: cleanName, data: draft }];
-
-    setSelectedId(id);
-    persist(next, id);
-  }
-
-  function createNew() {
-    setSelectedId(null);
-    setDraftName(`אווטאר ${safeAvatars.length + 1}`);
-    setDraft(DEFAULT_AVATAR);
-  }
-
-  function randomize() {
-    setDraft(createRandomAvatar());
-  }
-
-  function duplicateAvatar() {
-    const id = makeId();
     const next = [
       ...safeAvatars,
       {
         id,
-        name: `${draftName || selectedTitle} - עותק`,
+        name: cleanName,
         data: draft
       }
     ];
@@ -87,14 +80,74 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
     persist(next, id);
   }
 
+  function saveAsNew() {
+    const id = makeId();
+    const cleanName = draftName.trim() || getNextAvatarName(safeAvatars);
+
+    const next = [
+      ...safeAvatars,
+      {
+        id,
+        name: cleanName,
+        data: draft
+      }
+    ];
+
+    setSelectedId(id);
+    persist(next, id);
+  }
+
+  function createNew() {
+    const id = makeId();
+    const name = getNextAvatarName(safeAvatars);
+    const data = { ...DEFAULT_AVATAR };
+
+    const next = [
+      ...safeAvatars,
+      {
+        id,
+        name,
+        data
+      }
+    ];
+
+    setSelectedId(id);
+    setDraftName(name);
+    setDraft(data);
+
+    persist(next, id);
+  }
+
+  function randomize() {
+    setDraft(createRandomAvatar());
+  }
+
+  function duplicateAvatar() {
+    const id = makeId();
+    const name = `${draftName || selectedTitle} - עותק`;
+
+    const next = [
+      ...safeAvatars,
+      {
+        id,
+        name,
+        data: draft
+      }
+    ];
+
+    setSelectedId(id);
+    setDraftName(name);
+    persist(next, id);
+  }
+
   function deleteAvatar(id) {
     const next = safeAvatars.filter((item) => item.id !== id);
-
     const nextActiveId = activeAvatarId === id ? next[0]?.id || null : activeAvatarId;
+
     if (selectedId === id) {
       setSelectedId(next[0]?.id || null);
       setDraftName(next[0]?.name || 'האוואטר שלי');
-      setDraft(next[0]?.data || DEFAULT_AVATAR);
+      setDraft(next[0]?.data || { ...DEFAULT_AVATAR });
     }
 
     persist(next, nextActiveId);
@@ -108,6 +161,7 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
         <div className="avatar-builder-layout">
           <div className="avatar-preview-box">
             <Avatar avatar={draft} size="large" />
+
             <input
               value={draftName}
               onChange={(event) => setDraftName(event.target.value)}
@@ -118,12 +172,15 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
               <button className="primary-button" onClick={saveAvatar}>
                 שמור אווטאר
               </button>
+
               <button className="secondary-button" onClick={saveAsNew}>
                 שמור כחדש
               </button>
+
               <button className="secondary-button" onClick={randomize}>
                 אווטאר אקראי
               </button>
+
               <button className="link-button" onClick={duplicateAvatar}>
                 שכפל
               </button>
@@ -134,6 +191,7 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
             {Object.entries(AVATAR_OPTIONS).map(([key, options]) => (
               <label key={key}>
                 {categoryTitle(key)}
+
                 <select value={draft[key]} onChange={(event) => updateDraft(key, event.target.value)}>
                   {options.map(([value, label]) => (
                     <option key={value} value={value}>
@@ -153,6 +211,7 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
             {safeAvatars.map((item) => (
               <div key={item.id} className={item.id === activeAvatarId ? 'saved-avatar active' : 'saved-avatar'}>
                 <Avatar avatar={item.data} size="small" />
+
                 <strong>{item.name}</strong>
 
                 <button className="small-primary-button" onClick={() => chooseAvatar(item)}>
@@ -170,7 +229,11 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
                   ערוך
                 </button>
 
-                <button className="small-danger-button" onClick={() => deleteAvatar(item.id)} disabled={safeAvatars.length <= 1}>
+                <button
+                  className="small-danger-button"
+                  onClick={() => deleteAvatar(item.id)}
+                  disabled={safeAvatars.length <= 1}
+                >
                   מחק
                 </button>
               </div>
