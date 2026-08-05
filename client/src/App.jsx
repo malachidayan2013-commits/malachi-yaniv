@@ -2,11 +2,24 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { io } from 'socket.io-client';
 import Card from './components/Card.jsx';
 import PlayerSeat from './components/PlayerSeat.jsx';
+import Avatar from './components/Avatar.jsx';
+import AvatarBuilder from './components/AvatarBuilder.jsx';
 
 const defaultServerUrl =
   window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:10000'
     : window.location.origin;
+
+const AVATARS_KEY = 'yanivAvatars';
+const ACTIVE_AVATAR_KEY = 'yanivActiveAvatarId';
+
+function loadAvatars() {
+  try {
+    return JSON.parse(localStorage.getItem(AVATARS_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
 
 const suitOrder = { joker: 0, spades: 1, clubs: 2, diamonds: 3, hearts: 4 };
 
@@ -111,8 +124,14 @@ function App() {
     []
   );
 
+  const [avatars, setAvatars] = useState(loadAvatars);
+  const [activeAvatarId, setActiveAvatarId] = useState(localStorage.getItem(ACTIVE_AVATAR_KEY) || '');
+
+  const activeAvatar = avatars.find((item) => item.id === activeAvatarId)?.data || avatars[0]?.data || null;
+
   const [name, setName] = useState(localStorage.getItem('yanivName') || '');
   const [screen, setScreen] = useState(name ? (pathJoinCode ? 'join' : 'menu') : 'login');
+  const [avatarBackScreen, setAvatarBackScreen] = useState(pathJoinCode ? 'join' : 'menu');
   const [howToBackScreen, setHowToBackScreen] = useState('menu');
   const [room, setRoom] = useState(null);
   const [joinCode, setJoinCode] = useState(pathJoinCode);
@@ -142,6 +161,19 @@ function App() {
     };
   }, [socket]);
 
+  function saveAvatars(nextAvatars, nextActiveId) {
+    setAvatars(nextAvatars);
+    setActiveAvatarId(nextActiveId || '');
+
+    localStorage.setItem(AVATARS_KEY, JSON.stringify(nextAvatars));
+
+    if (nextActiveId) {
+      localStorage.setItem(ACTIVE_AVATAR_KEY, nextActiveId);
+    } else {
+      localStorage.removeItem(ACTIVE_AVATAR_KEY);
+    }
+  }
+
   function ensureSocket() {
     if (!socket.connected) socket.connect();
   }
@@ -158,8 +190,15 @@ function App() {
 
     localStorage.setItem('yanivName', cleanName);
     setName(cleanName);
-    setScreen(pathJoinCode ? 'join' : 'menu');
     setError('');
+
+    if (!avatars.length) {
+      setAvatarBackScreen(pathJoinCode ? 'join' : 'menu');
+      setScreen('avatar');
+      return;
+    }
+
+    setScreen(pathJoinCode ? 'join' : 'menu');
   }
 
   function createRoom() {
@@ -171,6 +210,7 @@ function App() {
       'createRoom',
       {
         name,
+        avatar: activeAvatar,
         settings: {
           yanivThreshold: Number(createSettings.yanivThreshold),
           eliminationScore: Number(createSettings.eliminationScore),
@@ -197,7 +237,7 @@ function App() {
 
     ensureSocket();
 
-    socket.emit('joinRoom', { code: cleanCode, name }, (response) => {
+    socket.emit('joinRoom', { code: cleanCode, name, avatar: activeAvatar }, (response) => {
       if (!response?.ok) setError(response?.error || 'לא ניתן להצטרף למשחק');
     });
   }
@@ -260,6 +300,11 @@ function App() {
     setScreen('howToPlay');
   }
 
+  function openAvatarFromMenu() {
+    setAvatarBackScreen('menu');
+    setScreen('avatar');
+  }
+
   function openBotGameSettings() {
     setCreateSettings((current) => ({
       ...current,
@@ -316,11 +361,25 @@ function App() {
     );
   }
 
+  if (screen === 'avatar') {
+    return (
+      <AvatarBuilder
+        avatars={avatars}
+        activeAvatarId={activeAvatarId}
+        onSaveAll={saveAvatars}
+        onBack={() => setScreen(avatarBackScreen)}
+      />
+    );
+  }
+
   if (screen === 'menu') {
     return (
       <main className="app-shell center-screen">
         <section className="panel menu-panel game-mode-panel">
-          <div className="top-name">שלום, {name}</div>
+          <div className="menu-profile">
+            <Avatar avatar={activeAvatar} size="small" />
+            <div className="top-name">שלום, {name}</div>
+          </div>
 
           <h1>יניב אונליין</h1>
           <p className="menu-subtitle">שחקו יניב נגד חברים או נגד בוטים, בחינם וישירות מהדפדפן.</p>
@@ -346,6 +405,10 @@ function App() {
 
           <button className="link-button" onClick={() => setScreen('login')}>
             שנה שם
+          </button>
+
+          <button className="link-button" onClick={openAvatarFromMenu}>
+            שנה אווטאר
           </button>
 
           {error && <p className="error-text">{error}</p>}
@@ -600,7 +663,7 @@ function HowToPlayScreen({ onBack }) {
       <section className="panel how-to-panel">
         <div className="how-to-hero">
           <h1>
-            <span className="how-to-title-icon">📖</span>
+            <span className="how-to-title-icon">🃏</span>
             איך משחקים יניב?
           </h1>
 
@@ -912,6 +975,7 @@ function GameScreen({
 
           <div className={`my-area ${room.isMyTurn ? 'active-turn' : ''}`}>
             <div className="my-info-row">
+              <Avatar avatar={me?.avatar} size="seat" />
               <strong>{me?.name}</strong>
               <span>ניקוד: {me?.score}</span>
               <span>סכום יד: {room.myHandValue ?? '-'}</span>

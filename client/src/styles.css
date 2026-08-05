@@ -1227,3 +1227,143 @@ button.how-to-button:hover {
     min-height: 138px;
   }
 }
+
+.menu-profile {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+  flex: 0 0 auto;
+}
+
+.avatar-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.avatar-seat {
+  width: 34px;
+  height: 34px;
+}
+
+.avatar-small {
+  width: 54px;
+  height: 54px;
+}
+
+.avatar-medium {
+  width: 72px;
+  height: 72px;
+}
+
+.avatar-large {
+  width: 132px;
+  height: 132px;
+}
+
+.avatar-builder-panel {
+  width: min(980px, 96vw);
+}
+
+.avatar-builder-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+.avatar-preview-box {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 22px;
+  background: #eef7f2;
+  border: 1px solid rgba(8, 163, 106, 0.18);
+}
+
+.avatar-actions {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+}
+
+.avatar-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  text-align: right;
+}
+
+.avatar-controls label {
+  font-weight: 800;
+}
+
+.saved-avatars-box {
+  margin-top: 22px;
+  text-align: right;
+}
+
+.saved-avatars-title {
+  margin-bottom: 10px;
+  font-weight: 900;
+  color: #0a5b3d;
+}
+
+.saved-avatars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.saved-avatar {
+  padding: 12px;
+  border: 1px solid rgba(8, 163, 106, 0.18);
+  border-radius: 18px;
+  background: #ffffff;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.saved-avatar.active {
+  outline: 3px solid rgba(242, 184, 75, 0.88);
+  background: #fff8e6;
+}
+
+.create-avatar-card {
+  border: 2px dashed rgba(8, 163, 106, 0.35);
+  color: #0a5b3d;
+  font-weight: 900;
+}
+
+.create-avatar-plus {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #e8f4ef;
+  font-size: 34px;
+}
+
+@media (max-width: 760px) {
+  .avatar-builder-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .avatar-controls {
+    grid-template-columns: 1fr;
+  }
+}

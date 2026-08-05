@@ -84,7 +84,7 @@ function defaultSettings(settings = {}) {
   };
 }
 
-function createRoom({ hostId, hostName, mode = 'private', settings = {} }) {
+function createRoom({ hostId, hostName, avatar = null, mode = 'private', settings = {} }) {
   const code = makeRoomCode();
   const finalSettings = defaultSettings(settings);
 
@@ -113,7 +113,7 @@ function createRoom({ hostId, hostName, mode = 'private', settings = {} }) {
   };
 
   rooms.set(code, room);
-  addHumanPlayer(room, hostId, hostName);
+  addHumanPlayer(room, hostId, hostName, avatar);
 
   if (finalSettings.botGame) {
     const botsToAdd = Math.max(1, Math.min(3, finalSettings.totalPlayers - 1));
@@ -139,10 +139,11 @@ function clearPasteWindow(room) {
   if (room) room.pasteWindow = null;
 }
 
-function addHumanPlayer(room, socketId, name) {
+function addHumanPlayer(room, socketId, name, avatar = null) {
   const player = {
     id: socketId,
     name: String(name || 'שחקן').trim().slice(0, 18) || 'שחקן',
+    avatar,
     hand: [],
     score: 0,
     active: true,
@@ -163,6 +164,7 @@ function addBotPlayer(room, index) {
   const player = {
     id: makeBotId(room.code, index),
     name: createBotName(index),
+    avatar: null,
     hand: [],
     score: 0,
     active: true,
@@ -314,6 +316,7 @@ function visiblePlayersFor(room, viewerId) {
     return {
       id: player.id,
       name: player.name,
+      avatar: player.avatar || null,
       score: player.score,
       active: player.active,
       isBot: player.isBot,
@@ -463,6 +466,7 @@ function buildFinalRanking(room) {
   return [...active, ...eliminated].slice(0, 4).map((player, index) => ({
     id: player.id,
     name: player.name,
+    avatar: player.avatar || null,
     score: player.score,
     place: index + 1,
     label: placeLabels[index] || `מקום ${index + 1}`,
@@ -652,6 +656,7 @@ function makeRoundSummary(room, declarer, result) {
     .map((player) => ({
       id: player.id,
       name: player.name,
+      avatar: player.avatar || null,
       handValue: result.valuesByPlayerId[player.id] ?? handValue(player.hand),
       score: player.score,
       scoreAdded: result.scoreAddedByPlayerId[player.id] ?? 0,
@@ -1034,7 +1039,7 @@ function scheduleBotIfNeeded(io, room) {
   setTimeout(() => botTakeTurn(io, room, current), getBotDelay(room));
 }
 
-function joinRoom(io, socket, { code, name }) {
+function joinRoom(io, socket, { code, name, avatar }) {
   const room = rooms.get(String(code || '').toUpperCase());
 
   if (!room) return { ok: false, error: 'לא נמצא משחק עם הקוד הזה' };
@@ -1042,7 +1047,7 @@ function joinRoom(io, socket, { code, name }) {
   if (room.players.length >= room.settings.maxPlayers) return { ok: false, error: 'החדר מלא' };
   if (room.settings.botGame) return { ok: false, error: 'אי אפשר להצטרף למשחק בוטים שכבר נוצר' };
 
-  addHumanPlayer(room, socket.id, name);
+  addHumanPlayer(room, socket.id, name, avatar || null);
 
   socket.join(room.code);
   emitRoom(io, room);
@@ -1067,6 +1072,7 @@ function quickPlay(io, socket, name) {
     room = createRoom({
       hostId: socket.id,
       hostName: name,
+      avatar: null,
       mode: 'random',
       settings: { yanivThreshold: 7, eliminationScore: 150, maxPlayers: 4, botGame: false }
     });
@@ -1077,7 +1083,7 @@ function quickPlay(io, socket, name) {
     return { ok: true, code: room.code };
   }
 
-  return joinRoom(io, socket, { code: room.code, name });
+  return joinRoom(io, socket, { code: room.code, name, avatar: null });
 }
 
 function removePlayerFromRoom(io, socket, reason = 'עזב את החדר') {
@@ -1194,6 +1200,7 @@ export function registerGameSockets(io) {
       const room = createRoom({
         hostId: socket.id,
         hostName: name,
+        avatar: payload?.avatar || null,
         mode: 'private',
         settings
       });
