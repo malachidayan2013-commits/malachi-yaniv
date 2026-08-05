@@ -77,6 +77,22 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
     setMode('editor');
   }
 
+  function deleteAvatarById(id) {
+    const nextAvatars = localAvatars.filter((item) => item.id !== id);
+    const nextActiveId = localActiveId === id ? nextAvatars[0]?.id || '' : localActiveId;
+
+    persist(nextAvatars, nextActiveId);
+
+    if (selectedId === id) {
+      const nextSelected = nextAvatars[0] || null;
+
+      setSelectedId(nextSelected?.id || null);
+      setDraftName(nextSelected?.name || 'האוואטר שלי');
+      setDraft(nextSelected?.data || { ...DEFAULT_AVATAR });
+      setMode('gallery');
+    }
+  }
+
   function updateDraft(key, value) {
     const nextDraft = { ...draft, [key]: value };
     setDraft(nextDraft);
@@ -160,18 +176,9 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
     setMode('editor');
   }
 
-  function deleteAvatar() {
+  function deleteCurrentAvatar() {
     if (!selectedId) return;
-
-    const nextAvatars = localAvatars.filter((item) => item.id !== selectedId);
-    const nextActiveId = localActiveId === selectedId ? nextAvatars[0]?.id || '' : localActiveId;
-
-    persist(nextAvatars, nextActiveId);
-
-    setSelectedId(null);
-    setDraftName('האוואטר שלי');
-    setDraft({ ...DEFAULT_AVATAR });
-    setMode('gallery');
+    deleteAvatarById(selectedId);
   }
 
   if (mode === 'gallery') {
@@ -187,18 +194,30 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
             <div className="avatar-gallery-grid">
               {localAvatars.length > 0 ? (
                 localAvatars.map((item) => (
-                  <button
+                  <div
                     key={item.id}
-                    type="button"
                     className={item.id === localActiveId ? 'avatar-gallery-card active' : 'avatar-gallery-card'}
-                    onClick={() => openEditor(item)}
                   >
-                    <Avatar avatar={item.data} size="large" />
+                    <button
+                      type="button"
+                      className="avatar-gallery-card-main"
+                      onClick={() => openEditor(item)}
+                    >
+                      <Avatar avatar={item.data} size="large" />
 
-                    <strong>{item.name}</strong>
+                      <strong>{item.name}</strong>
 
-                    {item.id === localActiveId && <span className="active-avatar-label">נבחר למשחק</span>}
-                  </button>
+                      {item.id === localActiveId && <span className="active-avatar-label">נבחר למשחק</span>}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="avatar-gallery-delete-button"
+                      onClick={() => deleteAvatarById(item.id)}
+                    >
+                      מחק
+                    </button>
+                  </div>
                 ))
               ) : (
                 <div className="empty-avatar-gallery">
@@ -227,8 +246,8 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
     <main className="app-shell center-screen">
       <section className="panel avatar-editor-panel">
         <div className="avatar-editor-header">
-          <button type="button" className="small-button" onClick={() => setMode('gallery')}>
-            חזרה לאוואטרים שלי
+          <button type="button" className="avatar-back-button" onClick={() => setMode('gallery')}>
+            חזרה לאווטארים שלי
           </button>
 
           <h1>עריכת אווטאר</h1>
@@ -261,12 +280,7 @@ function AvatarBuilder({ avatars, activeAvatarId, onSaveAll, onBack }) {
                 שכפל
               </button>
 
-              <button
-                type="button"
-                className="small-danger-button"
-                onClick={deleteAvatar}
-                disabled={localAvatars.length <= 1}
-              >
+              <button type="button" className="small-danger-button avatar-editor-delete-button" onClick={deleteCurrentAvatar}>
                 מחק אווטאר
               </button>
             </div>
