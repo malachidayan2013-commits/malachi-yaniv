@@ -1439,7 +1439,89 @@ button.how-to-button:hover {
   opacity: 0.68;
 }
 
-/* Round summary upgrade */
+/* Game player badges */
+
+.seat-name-block,
+.my-name-block {
+  display: grid;
+  gap: 4px;
+  align-items: center;
+}
+
+.seat-player-name {
+  font-weight: 900;
+}
+
+.seat-status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.game-status-badge {
+  display: inline-grid;
+  place-items: center;
+  min-height: 18px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.status-yaniv {
+  background: linear-gradient(180deg, #dff7e5, #9ee2b2);
+  color: #145c2a;
+}
+
+.status-asaf {
+  background: linear-gradient(180deg, #ffe6e6, #ffb3b3);
+  color: #8c1d1d;
+}
+
+.status-approved {
+  background: linear-gradient(180deg, #e8f0ff, #b9cdfc);
+  color: #173f8a;
+}
+
+.player-avatar-box.yaniv-caller-avatar {
+  box-shadow:
+    0 0 0 3px rgba(8, 163, 106, 0.55),
+    0 0 18px rgba(8, 163, 106, 0.42);
+}
+
+.player-avatar-box.asaf-player-avatar {
+  box-shadow:
+    0 0 0 3px rgba(217, 45, 32, 0.55),
+    0 0 18px rgba(217, 45, 32, 0.42);
+}
+
+.player-avatar-box.approved-avatar {
+  box-shadow:
+    0 0 0 3px rgba(31, 111, 235, 0.42),
+    0 0 14px rgba(31, 111, 235, 0.28);
+}
+
+.approved-badge-avatar {
+  top: -9px;
+  left: -8px;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e8f0ff 0%, #b9cdfc 100%);
+  color: #173f8a;
+  font-size: 13px;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.24),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.46);
+}
+
+/* Round summary */
 
 .round-summary {
   position: fixed;
@@ -1594,6 +1676,12 @@ button.how-to-button:hover {
   border: 1px solid rgba(166, 122, 0, 0.22);
 }
 
+.approved-summary-badge {
+  background: linear-gradient(180deg, #e8f0ff 0%, #b9cdfc 100%);
+  color: #173f8a;
+  border: 1px solid rgba(31, 111, 235, 0.22);
+}
+
 .summary-stats {
   display: flex;
   flex-direction: column;
@@ -1667,6 +1755,70 @@ button.how-to-button:hover {
   border-radius: 16px;
   background: #eef7f2;
   border: 1px solid #cde8da;
+}
+
+/* Opening game overlay */
+
+.opening-game-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(8, 18, 13, 0.62);
+  backdrop-filter: blur(6px);
+}
+
+.opening-game-card {
+  width: min(420px, 92vw);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 26px 24px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(242, 184, 75, 0.22), transparent 38%),
+    linear-gradient(180deg, #ffffff 0%, #eef7f2 100%);
+  color: #10281e;
+  text-align: center;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.34),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+
+.opening-game-card strong {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.opening-game-card p {
+  margin: 0;
+  max-width: 340px;
+  color: #2d3d35;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.opening-game-card span {
+  color: #65756e;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.opening-game-spinner {
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  border: 7px solid rgba(8, 163, 106, 0.18);
+  border-top-color: #08a36a;
+  animation: openingGameSpin 0.85s linear infinite;
+}
+
+@keyframes openingGameSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive */
@@ -1805,157 +1957,5 @@ button.how-to-button:hover {
   .summary-grid,
   .summary-grid-beautiful {
     grid-template-columns: 1fr;
-  }
-}
-
-/* Game player badges: Yaniv / Asaf / Approved */
-
-.seat-name-block,
-.my-name-block {
-  display: grid;
-  gap: 4px;
-  align-items: center;
-}
-
-.seat-player-name {
-  font-weight: 900;
-}
-
-.seat-status-badges {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
-}
-
-.game-status-badge {
-  display: inline-grid;
-  place-items: center;
-  min-height: 18px;
-  padding: 3px 7px;
-  border-radius: 999px;
-  font-size: 10px;
-  line-height: 1;
-  font-weight: 900;
-  white-space: nowrap;
-  box-shadow:
-    0 3px 8px rgba(0, 0, 0, 0.18),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
-}
-
-.status-yaniv {
-  background: linear-gradient(180deg, #dff7e5, #9ee2b2);
-  color: #145c2a;
-}
-
-.status-asaf {
-  background: linear-gradient(180deg, #ffe6e6, #ffb3b3);
-  color: #8c1d1d;
-}
-
-.status-approved {
-  background: linear-gradient(180deg, #e8f0ff, #b9cdfc);
-  color: #173f8a;
-}
-
-.player-avatar-box.yaniv-caller-avatar {
-  box-shadow:
-    0 0 0 3px rgba(8, 163, 106, 0.55),
-    0 0 18px rgba(8, 163, 106, 0.42);
-}
-
-.player-avatar-box.asaf-player-avatar {
-  box-shadow:
-    0 0 0 3px rgba(217, 45, 32, 0.55),
-    0 0 18px rgba(217, 45, 32, 0.42);
-}
-
-.player-avatar-box.approved-avatar {
-  box-shadow:
-    0 0 0 3px rgba(31, 111, 235, 0.42),
-    0 0 14px rgba(31, 111, 235, 0.28);
-}
-
-.approved-badge-avatar {
-  top: -9px;
-  left: -8px;
-  min-width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #e8f0ff 0%, #b9cdfc 100%);
-  color: #173f8a;
-  font-size: 13px;
-  box-shadow:
-    0 4px 10px rgba(0, 0, 0, 0.24),
-    inset 0 0 0 2px rgba(255, 255, 255, 0.46);
-}
-
-.approved-summary-badge {
-  background: linear-gradient(180deg, #e8f0ff 0%, #b9cdfc 100%);
-  color: #173f8a;
-  border: 1px solid rgba(31, 111, 235, 0.22);
-}
-
-/* Opening game / server wake overlay */
-
-.opening-game-overlay {
-  position: fixed;
-  z-index: 100;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 22px;
-  background: rgba(8, 18, 13, 0.62);
-  backdrop-filter: blur(6px);
-}
-
-.opening-game-card {
-  width: min(420px, 92vw);
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-  padding: 26px 24px;
-  border-radius: 28px;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(242, 184, 75, 0.22), transparent 38%),
-    linear-gradient(180deg, #ffffff 0%, #eef7f2 100%);
-  color: #10281e;
-  text-align: center;
-  box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.34),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.72);
-}
-
-.opening-game-card strong {
-  font-size: 24px;
-  font-weight: 900;
-}
-
-.opening-game-card p {
-  margin: 0;
-  max-width: 340px;
-  color: #2d3d35;
-  font-weight: 750;
-  line-height: 1.55;
-}
-
-.opening-game-card span {
-  color: #65756e;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.opening-game-spinner {
-  width: 58px;
-  height: 58px;
-  border-radius: 999px;
-  border: 7px solid rgba(8, 163, 106, 0.18);
-  border-top-color: #08a36a;
-  animation: openingGameSpin 0.85s linear infinite;
-}
-
-@keyframes openingGameSpin {
-  to {
-    transform: rotate(360deg);
   }
 }

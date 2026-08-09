@@ -5,24 +5,20 @@ import PlayerSeat from './components/PlayerSeat.jsx';
 import Avatar from './components/Avatar.jsx';
 import AvatarBuilder from './components/AvatarBuilder.jsx';
 
-const defaultServerUrl =
+const SERVER_URL =
   window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:10000'
-    : window.location.origin;
+    : 'https://yaniv-game.onrender.com';
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || defaultServerUrl;
+const AVATARS_KEY = 'yanivAvatars';
+const ACTIVE_AVATAR_KEY = 'yanivActiveAvatarId';
 
 function wakeGameServer() {
-  if (!SERVER_URL || SERVER_URL === window.location.origin) return;
-
-  fetch(`${SERVER_URL}/health?wake=${Date.now()}`, {
+  fetch(`${SERVER_URL}/`, {
     method: 'GET',
-    mode: 'no-cors',
     cache: 'no-store'
   }).catch(() => {});
 }
-const AVATARS_KEY = 'yanivAvatars';
-const ACTIVE_AVATAR_KEY = 'yanivActiveAvatarId';
 
 function loadAvatars() {
   try {
@@ -235,22 +231,26 @@ function App() {
     wakeGameServer();
 
     socket.on('roomState', (state) => {
+      finishOpeningGame();
       setRoom(state);
       setScreen('game');
       setError('');
-      setIsOpeningGame(false);
-      setOpeningGameText('');
     });
 
     socket.on('gameError', (message) => {
+      finishOpeningGame();
       setError(message);
-      setIsOpeningGame(false);
-      setOpeningGameText('');
+    });
+
+    socket.on('connect_error', () => {
+      finishOpeningGame();
+      setError('לא ניתן להתחבר לשרת המשחק כרגע. נסה שוב בעוד כמה שניות.');
     });
 
     return () => {
       socket.off('roomState');
       socket.off('gameError');
+      socket.off('connect_error');
     };
   }, [socket]);
 
@@ -269,6 +269,25 @@ function App() {
 
   function ensureSocket() {
     if (!socket.connected) socket.connect();
+  }
+
+  function beginOpeningGame(text) {
+    setIsOpeningGame(true);
+    setOpeningGameText(text || 'פותח משחק... זה יכול לקחת כמה שניות בפעם הראשונה.');
+
+    window.clearTimeout(window.openingGameTimeout);
+
+    window.openingGameTimeout = window.setTimeout(() => {
+      setIsOpeningGame(false);
+      setOpeningGameText('');
+      setError('החיבור לשרת המשחק לוקח יותר מדי זמן. נסה שוב בעוד כמה שניות.');
+    }, 45000);
+  }
+
+  function finishOpeningGame() {
+    window.clearTimeout(window.openingGameTimeout);
+    setIsOpeningGame(false);
+    setOpeningGameText('');
   }
 
   function submitName(event) {
@@ -297,14 +316,14 @@ function App() {
   function createRoom() {
     const isBotGame = Boolean(createSettings.botGame);
 
-    setIsOpeningGame(true);
-    setOpeningGameText(
+    setError('');
+    beginOpeningGame(
       isBotGame
         ? 'פותח משחק נגד בוטים... אם זו הכניסה הראשונה, השרת מתעורר וזה יכול לקחת כמה שניות.'
         : 'פותח חדר משחק... אם זו הכניסה הראשונה, השרת מתעורר וזה יכול לקחת כמה שניות.'
     );
 
-    wakeGameServer();    
+    wakeGameServer();
     ensureSocket();
 
     socket.emit(
@@ -324,9 +343,8 @@ function App() {
       },
       (response) => {
         if (!response?.ok) {
+          finishOpeningGame();
           setError(response?.error || 'לא ניתן ליצור משחק');
-          setIsOpeningGame(false);
-          setOpeningGameText('');
         }
       }
     );
@@ -340,14 +358,17 @@ function App() {
       return;
     }
 
-    setIsOpeningGame(true);
-    setOpeningGameText('מצטרף למשחק... אם השרת היה רדום, זה יכול לקחת כמה שניות.');
-    wakeGameServer();
+    setError('');
+    beginOpeningGame('מצטרף למשחק... אם השרת היה רדום, זה יכול לקחת כמה שניות.');
 
+    wakeGameServer();
     ensureSocket();
 
     socket.emit('joinRoom', { code: cleanCode, name, avatar: activeAvatar }, (response) => {
-      if (!response?.ok) setError(response?.error || 'לא ניתן להצטרף למשחק');
+      if (!response?.ok) {
+        finishOpeningGame();
+        setError(response?.error || 'לא ניתן להצטרף למשחק');
+      }
     });
   }
 
@@ -416,6 +437,7 @@ function App() {
 
   function openBotGameSettings() {
     wakeGameServer();
+
     setCreateSettings((current) => ({
       ...current,
       botGame: true,
@@ -429,6 +451,8 @@ function App() {
   }
 
   function openJoinFromFriendMenu() {
+    wakeGameServer();
+
     setJoinBackScreen('friendMenu');
     setScreen('join');
     setError('');
@@ -436,6 +460,7 @@ function App() {
 
   function openFriendGameSettings() {
     wakeGameServer();
+
     setCreateSettings((current) => ({
       ...current,
       botGame: false,
@@ -580,6 +605,8 @@ function App() {
               חזרה
             </button>
           </div>
+
+          {isOpeningGame && <OpeningGameOverlay text={openingGameText} />}
 
           {error && <p className="error-text">{error}</p>}
         </section>
