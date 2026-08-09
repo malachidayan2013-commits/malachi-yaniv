@@ -327,4 +327,4 @@ function categoryTitle(key) {
   return titles[key] || key;
 }
 
-export default AvatarBuilder;
+export default AvatarBuilder;   

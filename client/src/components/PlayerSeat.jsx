@@ -2,7 +2,26 @@ import React from 'react';
 import Card from './Card.jsx';
 import Avatar from './Avatar.jsx';
 
-function AvatarStatusBox({ player, isCurrentTurn, isRoundWinner }) {
+function PlayerStatusBadges({ isYanivCaller, isAsafPlayer, hasApprovedNextRound }) {
+  if (!isYanivCaller && !isAsafPlayer && !hasApprovedNextRound) return null;
+
+  return (
+    <div className="seat-status-badges">
+      {isYanivCaller && <span className="game-status-badge status-yaniv">יניב</span>}
+      {isAsafPlayer && <span className="game-status-badge status-asaf">אסף</span>}
+      {hasApprovedNextRound && <span className="game-status-badge status-approved">✓ אישר</span>}
+    </div>
+  );
+}
+
+function AvatarStatusBox({
+  player,
+  isCurrentTurn,
+  isRoundWinner,
+  isYanivCaller,
+  isAsafPlayer,
+  hasApprovedNextRound
+}) {
   const isEliminated = !player.active;
 
   return (
@@ -11,6 +30,9 @@ function AvatarStatusBox({ player, isCurrentTurn, isRoundWinner }) {
         'player-avatar-box',
         isCurrentTurn ? 'current-turn' : '',
         isRoundWinner ? 'round-winner' : '',
+        isYanivCaller ? 'yaniv-caller-avatar' : '',
+        isAsafPlayer ? 'asaf-player-avatar' : '',
+        hasApprovedNextRound ? 'approved-avatar' : '',
         isEliminated ? 'avatar-eliminated' : ''
       ]
         .filter(Boolean)
@@ -18,13 +40,22 @@ function AvatarStatusBox({ player, isCurrentTurn, isRoundWinner }) {
     >
       {isRoundWinner && <span className="avatar-badge crown-badge">👑</span>}
       {isCurrentTurn && <span className="avatar-badge turn-badge">תור</span>}
+      {hasApprovedNextRound && <span className="avatar-badge approved-badge-avatar">✓</span>}
 
       <Avatar avatar={player.avatar} size="seat" />
     </div>
   );
 }
 
-function PlayerSeat({ player, position, isCurrentTurn, isRoundWinner = false }) {
+function PlayerSeat({
+  player,
+  position,
+  isCurrentTurn,
+  isRoundWinner = false,
+  isYanivCaller = false,
+  isAsafPlayer = false,
+  hasApprovedNextRound = false
+}) {
   if (!player) {
     return <div className={`player-seat ${position} empty-seat`}>מקום פנוי</div>;
   }
@@ -44,9 +75,24 @@ function PlayerSeat({ player, position, isCurrentTurn, isRoundWinner = false }) 
         .join(' ')}
     >
       <div className="seat-name-row">
-        <AvatarStatusBox player={player} isCurrentTurn={isCurrentTurn} isRoundWinner={isRoundWinner} />
+        <AvatarStatusBox
+          player={player}
+          isCurrentTurn={isCurrentTurn}
+          isRoundWinner={isRoundWinner}
+          isYanivCaller={isYanivCaller}
+          isAsafPlayer={isAsafPlayer}
+          hasApprovedNextRound={hasApprovedNextRound}
+        />
 
-        <span>{player.name}</span>
+        <div className="seat-name-block">
+          <span className="seat-player-name">{player.name}</span>
+
+          <PlayerStatusBadges
+            isYanivCaller={isYanivCaller}
+            isAsafPlayer={isAsafPlayer}
+            hasApprovedNextRound={hasApprovedNextRound}
+          />
+        </div>
 
         {player.isBot && <span className="bot-badge">בוט</span>}
       </div>

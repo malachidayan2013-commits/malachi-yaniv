@@ -123,7 +123,38 @@ function getRoundWinnerId(roundSummary) {
   return roundSummary.declarerId || null;
 }
 
-function AvatarStatusBox({ player, isCurrentTurn, isRoundWinner }) {
+function getRoundYanivCallerId(roundSummary) {
+  return roundSummary?.declarerId || null;
+}
+
+function getAsafPlayerIds(roundSummary) {
+  return new Set((roundSummary?.players || []).filter((player) => player.isAsaf).map((player) => player.id));
+}
+
+function getApprovedPlayerIds(nextRoundApproval) {
+  return new Set(nextRoundApproval?.approvedPlayerIds || []);
+}
+
+function PlayerStatusBadges({ isYanivCaller, isAsafPlayer, hasApprovedNextRound }) {
+  if (!isYanivCaller && !isAsafPlayer && !hasApprovedNextRound) return null;
+
+  return (
+    <div className="seat-status-badges">
+      {isYanivCaller && <span className="game-status-badge status-yaniv">יניב</span>}
+      {isAsafPlayer && <span className="game-status-badge status-asaf">אסף</span>}
+      {hasApprovedNextRound && <span className="game-status-badge status-approved">✓ אישר</span>}
+    </div>
+  );
+}
+
+function AvatarStatusBox({
+  player,
+  isCurrentTurn,
+  isRoundWinner,
+  isYanivCaller,
+  isAsafPlayer,
+  hasApprovedNextRound
+}) {
   if (!player) return null;
 
   const isEliminated = !player.active;
@@ -134,6 +165,9 @@ function AvatarStatusBox({ player, isCurrentTurn, isRoundWinner }) {
         'player-avatar-box',
         isCurrentTurn ? 'current-turn' : '',
         isRoundWinner ? 'round-winner' : '',
+        isYanivCaller ? 'yaniv-caller-avatar' : '',
+        isAsafPlayer ? 'asaf-player-avatar' : '',
+        hasApprovedNextRound ? 'approved-avatar' : '',
         isEliminated ? 'avatar-eliminated' : ''
       ]
         .filter(Boolean)
@@ -141,6 +175,7 @@ function AvatarStatusBox({ player, isCurrentTurn, isRoundWinner }) {
     >
       {isRoundWinner && <span className="avatar-badge crown-badge">👑</span>}
       {isCurrentTurn && <span className="avatar-badge turn-badge">תור</span>}
+      {hasApprovedNextRound && <span className="avatar-badge approved-badge-avatar">✓</span>}
 
       <Avatar avatar={player.avatar} size="seat" />
     </div>
@@ -781,6 +816,9 @@ function GameScreen({
   }
 
   const roundWinnerId = getRoundWinnerId(room.roundSummary);
+  const yanivCallerId = getRoundYanivCallerId(room.roundSummary);
+  const asafPlayerIds = getAsafPlayerIds(room.roundSummary);
+  const approvedPlayerIds = getApprovedPlayerIds(room.nextRoundApproval);
 
   const me = room.players.find((player) => player.id === mySocketId) || room.players[0];
 
@@ -845,6 +883,16 @@ function GameScreen({
 
     onDiscardAndDraw(selectedCardIds, source);
     setSelectedCardIds([]);
+  }
+
+  function playerProps(player) {
+    return {
+      isCurrentTurn: room.currentTurn === player?.id,
+      isRoundWinner: roundWinnerId === player?.id,
+      isYanivCaller: yanivCallerId === player?.id,
+      isAsafPlayer: player?.id ? asafPlayerIds.has(player.id) : false,
+      hasApprovedNextRound: player?.id ? approvedPlayerIds.has(player.id) : false
+    };
   }
 
   return (
@@ -947,6 +995,7 @@ function GameScreen({
 
               const isWinner = roundWinnerId === player.id;
               const isDeclarer = room.roundSummary.declarerId === player.id;
+              const hasApproved = approvedPlayerIds.has(player.id);
 
               return (
                 <div
@@ -973,6 +1022,7 @@ function GameScreen({
                         {isDeclarer && <span className="summary-badge yaniv-badge">יניב</span>}
                         {player.isAsaf && <span className="summary-badge asaf-badge">אסף</span>}
                         {isWinner && <span className="summary-badge winner-badge">מנצח הסבב</span>}
+                        {hasApproved && <span className="summary-badge approved-summary-badge">✓ אישר</span>}
                       </div>
                     </div>
                   </div>
@@ -1020,6 +1070,7 @@ function GameScreen({
           )}
         </section>
       )}
+
       {room.status === 'finished' && room.finalRanking?.length > 0 && (
         <section className="final-ranking">
           <h2>דירוג סופי</h2>
@@ -1038,26 +1089,9 @@ function GameScreen({
 
       {room.status !== 'lobby' && (
         <section className="game-table">
-          <PlayerSeat
-            player={topPlayer}
-            position="top-seat"
-            isCurrentTurn={room.currentTurn === topPlayer?.id}
-            isRoundWinner={roundWinnerId === topPlayer?.id}
-          />
-
-          <PlayerSeat
-            player={rightPlayer}
-            position="right-seat"
-            isCurrentTurn={room.currentTurn === rightPlayer?.id}
-            isRoundWinner={roundWinnerId === rightPlayer?.id}
-          />
-
-          <PlayerSeat
-            player={leftPlayer}
-            position="left-seat"
-            isCurrentTurn={room.currentTurn === leftPlayer?.id}
-            isRoundWinner={roundWinnerId === leftPlayer?.id}
-          />
+          <PlayerSeat player={topPlayer} position="top-seat" {...playerProps(topPlayer)} />
+          <PlayerSeat player={rightPlayer} position="right-seat" {...playerProps(rightPlayer)} />
+          <PlayerSeat player={leftPlayer} position="left-seat" {...playerProps(leftPlayer)} />
 
           <div className="center-piles">
             <div className={`pile-block ${canPlayToPile ? 'clickable-pile' : ''}`}>
@@ -1077,13 +1111,18 @@ function GameScreen({
 
           <div className={`my-area ${room.isMyTurn ? 'active-turn' : ''}`}>
             <div className="my-info-row">
-              <AvatarStatusBox
-                player={me}
-                isCurrentTurn={room.currentTurn === me?.id}
-                isRoundWinner={roundWinnerId === me?.id}
-              />
+              <AvatarStatusBox player={me} {...playerProps(me)} />
 
-              <strong>{me?.name}</strong>
+              <div className="my-name-block">
+                <strong>{me?.name}</strong>
+
+                <PlayerStatusBadges
+                  isYanivCaller={yanivCallerId === me?.id}
+                  isAsafPlayer={me?.id ? asafPlayerIds.has(me.id) : false}
+                  hasApprovedNextRound={me?.id ? approvedPlayerIds.has(me.id) : false}
+                />
+              </div>
+
               <span>ניקוד: {me?.score}</span>
               <span>סכום יד: {room.myHandValue ?? '-'}</span>
               {room.isMyTurn && <span className="turn-pill">התור שלך</span>}

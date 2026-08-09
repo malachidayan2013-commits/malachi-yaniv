@@ -1807,3 +1807,91 @@ button.how-to-button:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* Game player badges: Yaniv / Asaf / Approved */
+
+.seat-name-block,
+.my-name-block {
+  display: grid;
+  gap: 4px;
+  align-items: center;
+}
+
+.seat-player-name {
+  font-weight: 900;
+}
+
+.seat-status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.game-status-badge {
+  display: inline-grid;
+  place-items: center;
+  min-height: 18px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.status-yaniv {
+  background: linear-gradient(180deg, #dff7e5, #9ee2b2);
+  color: #145c2a;
+}
+
+.status-asaf {
+  background: linear-gradient(180deg, #ffe6e6, #ffb3b3);
+  color: #8c1d1d;
+}
+
+.status-approved {
+  background: linear-gradient(180deg, #e8f0ff, #b9cdfc);
+  color: #173f8a;
+}
+
+.player-avatar-box.yaniv-caller-avatar {
+  box-shadow:
+    0 0 0 3px rgba(8, 163, 106, 0.55),
+    0 0 18px rgba(8, 163, 106, 0.42);
+}
+
+.player-avatar-box.asaf-player-avatar {
+  box-shadow:
+    0 0 0 3px rgba(217, 45, 32, 0.55),
+    0 0 18px rgba(217, 45, 32, 0.42);
+}
+
+.player-avatar-box.approved-avatar {
+  box-shadow:
+    0 0 0 3px rgba(31, 111, 235, 0.42),
+    0 0 14px rgba(31, 111, 235, 0.28);
+}
+
+.approved-badge-avatar {
+  top: -9px;
+  left: -8px;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e8f0ff 0%, #b9cdfc 100%);
+  color: #173f8a;
+  font-size: 13px;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.24),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.46);
+}
+
+.approved-summary-badge {
+  background: linear-gradient(180deg, #e8f0ff 0%, #b9cdfc 100%);
+  color: #173f8a;
+  border: 1px solid rgba(31, 111, 235, 0.22);
+}
