@@ -10,6 +10,17 @@ const defaultServerUrl =
     ? 'http://localhost:10000'
     : window.location.origin;
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || defaultServerUrl;
+
+function wakeGameServer() {
+  if (!SERVER_URL || SERVER_URL === window.location.origin) return;
+
+  fetch(`${SERVER_URL}/health?wake=${Date.now()}`, {
+    method: 'GET',
+    mode: 'no-cors',
+    cache: 'no-store'
+  }).catch(() => {});
+}
 const AVATARS_KEY = 'yanivAvatars';
 const ACTIVE_AVATAR_KEY = 'yanivActiveAvatarId';
 
@@ -187,8 +198,11 @@ function App() {
 
   const socket = useMemo(
     () =>
-      io(import.meta.env.VITE_SERVER_URL || defaultServerUrl, {
-        autoConnect: false
+      io(SERVER_URL, {
+        autoConnect: false,
+        reconnection: true,
+        reconnectionAttempts: 8,
+        reconnectionDelay: 900
       }),
     []
   );
@@ -206,6 +220,8 @@ function App() {
   const [joinCode, setJoinCode] = useState(pathJoinCode);
   const [joinBackScreen, setJoinBackScreen] = useState('menu');
   const [error, setError] = useState('');
+  const [isOpeningGame, setIsOpeningGame] = useState(false);
+  const [openingGameText, setOpeningGameText] = useState('');
   const [createSettings, setCreateSettings] = useState({
     yanivThreshold: 7,
     eliminationScore: 150,
@@ -216,13 +232,21 @@ function App() {
   });
 
   useEffect(() => {
+    wakeGameServer();
+
     socket.on('roomState', (state) => {
       setRoom(state);
       setScreen('game');
       setError('');
+      setIsOpeningGame(false);
+      setOpeningGameText('');
     });
 
-    socket.on('gameError', (message) => setError(message));
+    socket.on('gameError', (message) => {
+      setError(message);
+      setIsOpeningGame(false);
+      setOpeningGameText('');
+    });
 
     return () => {
       socket.off('roomState');
@@ -273,6 +297,14 @@ function App() {
   function createRoom() {
     const isBotGame = Boolean(createSettings.botGame);
 
+    setIsOpeningGame(true);
+    setOpeningGameText(
+      isBotGame
+        ? 'פותח משחק נגד בוטים... אם זו הכניסה הראשונה, השרת מתעורר וזה יכול לקחת כמה שניות.'
+        : 'פותח חדר משחק... אם זו הכניסה הראשונה, השרת מתעורר וזה יכול לקחת כמה שניות.'
+    );
+
+    wakeGameServer();    
     ensureSocket();
 
     socket.emit(
@@ -291,7 +323,11 @@ function App() {
         }
       },
       (response) => {
-        if (!response?.ok) setError(response?.error || 'לא ניתן ליצור משחק');
+        if (!response?.ok) {
+          setError(response?.error || 'לא ניתן ליצור משחק');
+          setIsOpeningGame(false);
+          setOpeningGameText('');
+        }
       }
     );
   }
@@ -303,6 +339,10 @@ function App() {
       setError('צריך להכניס קוד משחק');
       return;
     }
+
+    setIsOpeningGame(true);
+    setOpeningGameText('מצטרף למשחק... אם השרת היה רדום, זה יכול לקחת כמה שניות.');
+    wakeGameServer();
 
     ensureSocket();
 
@@ -375,6 +415,7 @@ function App() {
   }
 
   function openBotGameSettings() {
+    wakeGameServer();
     setCreateSettings((current) => ({
       ...current,
       botGame: true,
@@ -394,6 +435,7 @@ function App() {
   }
 
   function openFriendGameSettings() {
+    wakeGameServer();
     setCreateSettings((current) => ({
       ...current,
       botGame: false,
@@ -634,6 +676,8 @@ function App() {
           <button className="link-button" onClick={() => setScreen(isBotGame ? 'menu' : 'friendMenu')}>
             חזרה
           </button>
+
+          {isOpeningGame && <OpeningGameOverlay text={openingGameText} />}
 
           {error && <p className="error-text">{error}</p>}
         </section>
@@ -1155,6 +1199,22 @@ function GameScreen({
 
       {error && <div className="floating-error">{error}</div>}
     </main>
+  );
+}
+
+function OpeningGameOverlay({ text }) {
+  return (
+    <div className="opening-game-overlay" role="status" aria-live="polite">
+      <div className="opening-game-card">
+        <div className="opening-game-spinner" aria-hidden="true" />
+
+        <strong>מכין את המשחק</strong>
+
+        <p>{text || 'פותח משחק... זה יכול לקחת כמה שניות בפעם הראשונה.'}</p>
+
+        <span>נא לא לרענן את הדף.</span>
+      </div>
+    </div>
   );
 }
 

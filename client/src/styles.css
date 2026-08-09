@@ -1895,3 +1895,67 @@ button.how-to-button:hover {
   color: #173f8a;
   border: 1px solid rgba(31, 111, 235, 0.22);
 }
+
+/* Opening game / server wake overlay */
+
+.opening-game-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(8, 18, 13, 0.62);
+  backdrop-filter: blur(6px);
+}
+
+.opening-game-card {
+  width: min(420px, 92vw);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 26px 24px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(242, 184, 75, 0.22), transparent 38%),
+    linear-gradient(180deg, #ffffff 0%, #eef7f2 100%);
+  color: #10281e;
+  text-align: center;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.34),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+
+.opening-game-card strong {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.opening-game-card p {
+  margin: 0;
+  max-width: 340px;
+  color: #2d3d35;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.opening-game-card span {
+  color: #65756e;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.opening-game-spinner {
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  border: 7px solid rgba(8, 163, 106, 0.18);
+  border-top-color: #08a36a;
+  animation: openingGameSpin 0.85s linear infinite;
+}
+
+@keyframes openingGameSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
